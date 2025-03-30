@@ -1,0 +1,332 @@
+:root {
+  --primary-color: #2a5298;
+  --background-color: #f5f7fa;
+  --success-color: #4caf50;
+  --danger-color: #f44336;
+  --warning-color: #ffc107;
+  --neutral-color: #f3f4f6;
+  --text-primary: #333;
+  --text-secondary: #555;
+}
+article
+.dashboard-container {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--background-color);
+}
+
+.main-content {
+  flex: 1;
+  transition: margin-left 0.3s;
+  padding: 20px;
+  width: calc(100% - 240px);
+}
+
+.sidebar-collapsed .main-content {
+  width: calc(100% - 60px);
+}
+
+.my-articles-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.my-articles-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.my-articles-header h1 {
+  font-size: 1.8rem;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.header-buttons {
+  display: flex;
+  gap: 15px;
+}
+
+.request-button, .back-button {
+  padding: 10px 15px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.request-button {
+  background-color: var(--success-color);
+  color: white;
+}
+
+.request-button:hover {
+  background-color: #3d8b40;
+  transform: translateY(-2px);
+}
+
+.back-button {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.back-button:hover {
+  background-color: #1e3a8a;
+  transform: translateY(-2px);
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+}
+
+.loading-spinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid var(--primary-color);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 15px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error-message {
+  background-color: #ffebee;
+  padding: 20px;
+  border-radius: 8px;
+  margin: 20px 0;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.error-message button {
+  margin-top: 15px;
+  padding: 8px 15px;
+  background-color: var(--danger-color);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.error-message button:hover {
+  background-color: #d32f2f;
+  transform: translateY(-2px);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  background-color: var(--neutral-color);
+  border-radius: 8px;
+  margin: 20px 0;
+}
+
+.empty-state h2 {
+  margin-top: 0;
+  color: var(--text-secondary);
+}
+
+.empty-state button {
+  margin-top: 20px;
+  padding: 10px 20px;
+  background-color: var(--success-color);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.empty-state button:hover {
+  background-color: #3d8b40;
+  transform: translateY(-2px);
+}
+
+.articles-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.article-card {
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  transition: all 0.3s ease;
+}
+
+.article-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.15);
+}
+
+.article-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 15px;
+}
+
+.article-header h2 {
+  font-size: 1.2rem;
+  margin: 0;
+  color: var(--text-primary);
+  flex: 1;
+  padding-right: 15px;
+}
+
+.status-badge {
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.status-pending {
+  background-color: var(--warning-color);
+  color: #333;
+}
+
+.status-fulfilled {
+  background-color: var(--success-color);
+  color: white;
+}
+
+.status-rejected {
+  background-color: var(--danger-color);
+  color: white;
+}
+
+.article-details {
+  margin-bottom: 15px;
+}
+
+.article-details p {
+  margin: 5px 0;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.expiry-warning {
+  color: var(--danger-color);
+}
+
+.additional-info {
+  background-color: var(--neutral-color);
+  padding: 10px 15px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  font-size: 0.9rem;
+}
+
+.additional-info p {
+  margin: 5px 0;
+}
+
+.article-actions {
+  margin-top: 15px;
+  display: flex;
+  justify-content: center;
+}
+
+.view-button {
+  padding: 8px 20px;
+  border: none;
+  border-radius: 8px;
+  background-color: var(--primary-color);
+  color: white;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.2s;
+  width: 100%;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.view-button:hover {
+  background-color: #1e3a8a;
+  transform: translateY(-2px);
+}
+
+.view-button:disabled {
+  background-color: #b0b0b0;
+  cursor: not-allowed;
+}
+
+.article-status-message {
+  padding: 10px;
+  background-color: #e8f5e9;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.article-status-message.rejected {
+  background-color: #ffebee;
+}
+
+/* Media Queries for Responsiveness */
+@media (max-width: 768px) {
+  .my-articles-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+  
+  .articles-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Previous CSS with modifications to article card and request button */
+
+.article-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 15px;
+  background: linear-gradient(135deg, var(--primary-color), #1f2937);
+  margin: -20px -20px 15px -20px; /* Extends beyond card padding */
+  padding: 16px;
+}
+
+.article-header h2 {
+  font-size: 1.2rem;
+  margin: 0;
+  color: white;
+  flex: 1;
+  padding-right: 15px;
+}
+
+.request-button {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.request-button:hover {
+  background-color: #1e3a8a;
+  transform: translateY(-2px);
+}
+
+.article-card {
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  overflow: hidden; /* Ensures rounded corners and full-width header */
+  transition: all 0.3s ease;
+}
