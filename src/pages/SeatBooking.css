@@ -528,7 +528,7 @@
 }
 
 /* Responsive adjustments */
-@media (max-width: 1024px) {
+/* @media (max-width: 1024px) {
     .sidebar:not(.collapsed) {
         width: 240px;
         min-width: 240px;
@@ -647,7 +647,7 @@
         width: 32px;
         height: 32px;
     }
-}
+} */
 
 .app-container {
     display: flex;

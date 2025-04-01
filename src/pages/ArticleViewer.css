@@ -1,3 +1,13 @@
+:root {
+  --primary-color: #2a5298;
+  --background-color: #f5f7fa;
+  --success-color: #4caf50;
+  --danger-color: #ef4444;
+  --neutral-color: #f3f4f6;
+  --text-primary: #000000;
+  --text-secondary: #4b5563;
+}
+
 .article-viewer-container {
     display: flex;
     flex-direction: column;
@@ -62,12 +72,13 @@
   }
   
   .back-button {
-    background-color: #2196f3;
+    background-color: var(--primary-color);
     color: white;
   }
   
   .back-button:hover {
-    background-color: #0d8bf2;
+    background-color: var(--primary-color);
+    transform: scale(1.05);
   }
   
   .article-content {
@@ -111,14 +122,14 @@
     padding: 8px 15px;
     border: none;
     border-radius: 4px;
-    background-color: #2196f3;
+    background-color: var(--primary-color);
     color: white;
     cursor: pointer;
     transition: background-color 0.2s;
   }
   
   .page-navigation button:hover {
-    background-color: #0d8bf2;
+    background-color: var(--primary-color);
   }
   
   .page-navigation button:disabled {

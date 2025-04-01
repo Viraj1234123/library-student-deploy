@@ -226,7 +226,7 @@
 }
 
 /* Responsive Adjustments */
-@media (max-width: 768px) {
+/* @media (max-width: 768px) {
   .main-content {
     padding: 16px;
     margin-left: 80px;
@@ -263,9 +263,7 @@
   .bookings-grid {
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   }
-}
-
-/* Previous CSS remains the same, with these modifications to the page title */
+} */
 
 .page-header .page-title {
   font-size: 2rem;  /* Increased font size */
@@ -283,8 +281,6 @@
   content: '📅';  /* Calendar emoji */
   font-size: 1.5rem;
 }
-
-/* Rest of the previous CSS remains unchanged */
 
 .page-header {
   display: flex;

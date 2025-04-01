@@ -8,7 +8,6 @@
   --text-secondary: #4b5563;
 }
 
-
 .app-container {
     display: flex;
     height: 100vh;
@@ -553,7 +552,7 @@
   }
   
   /* Responsive Adjustments */
-  @media (max-width: 768px) {
+  /* @media (max-width: 768px) {
     .main-content {
       padding: 16px;
       margin-left: 0;
@@ -589,7 +588,7 @@
     .form-type-buttons {
       flex-direction: column;
     }
-  }
+  } */
 
 .complaint-form-card.narrow-form {
   max-width: 600px;  /* Reduced from 800px */
@@ -600,13 +599,11 @@
 }
 
 /* Adjusted responsive design for narrower form */
-@media (max-width: 768px) {
+/* @media (max-width: 768px) {
   .complaint-form-card.narrow-form {
     max-width: 95%;
   }
-}
-
-/* Existing CSS with modifications */
+} */
 
 .complaint-form-card.form-container {
   max-width: 500px;  /* Slightly narrower */
@@ -652,7 +649,7 @@
   max-width: 100%;
 }
 
-@media (max-width: 600px) {
+/* @media (max-width: 600px) {
   .complaint-form-card.form-container {
     width: calc(100% - 32px);
     margin-left: 16px;
@@ -662,7 +659,7 @@
   .complaint-form {
     padding: 16px;
   }
-}
+} */
 
 .has-attachment {
   cursor: pointer;
