@@ -3,25 +3,28 @@ body, html {
   padding: 0;
   background-color: #f9f9f9;
   height: 100%;
+  width: 100%;
   font-family: 'Roboto', 'Segoe UI', sans-serif;
+  overflow: hidden; /* Prevent scrolling */
 }
 
-/* New parent container for the entire page */
 .auth-page {
-  min-height: 100vh;
+  height: 98vh; /* Full viewport height */
+  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center; /* Center vertically */
   background-color: #f9f9f9;
-  padding: 20px 0;
+  box-sizing: border-box;
 }
 
-/* Library title at the top center */
 .library-title {
-  font-size: 28px;
+  font-size: clamp(32px, 3vmin, 28px);
   font-weight: 600;
   color: #333;
-  margin-bottom: 30px;
+  margin-top: 1vh;
+  margin-bottom: 2vh;
   text-align: center;
   display: flex;
   align-items: center;
@@ -29,114 +32,119 @@ body, html {
 }
 
 .library-logo {
-  width: 40px;
-  height: 40px;
-  margin-right: 12px;
+  width: clamp(50px, 3vmin, 40px);
+  height: clamp(50px, 3vmin, 40px);
+  margin-right: 0.8em;
   background: #ffffff;
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
-  font-size: 22px;
+  font-size: clamp(16px, 2vmin, 22px);
   font-weight: 700;
   transition: transform 0.3s ease;
 }
 
-/* Container for auth-form and auth-image */
 .auth-container {
   display: flex;
-  width: 90%;
-  max-width: 1200px;
-  min-height: 550px;
+  width: 95%; /* Wider coverage */
+  max-width: 2000px;
+  height: 90vh; /* Fixed height to cover most of viewport */
   border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  background-color: #fff;
+  overflow: visible;
+  background-color: #f9f9f9;
+  margin: 0 auto; /* Center horizontally */
 }
 
 .auth-image-section {
   flex: 1;
-  background-color: #f0f2f5;
+  background-color: #f9f9f9;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: top;
   align-items: center;
   position: relative;
   overflow: hidden;
+  height: 100%; /* Full height */
 }
 
 .auth-image {
-  width: auto;
+  width: 85%;
   max-width: 90%;
-  height: auto;
-  object-fit: contain;
-  margin-top: 5%;
-  margin-bottom: 1%;
-  border-radius: 8px;
+  height: 100%;
+  max-height: 70vh; /* Larger image */
+  object-fit: fill;
+  margin: 0;
+  border-radius: 2vh;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s ease;
 }
 
-.auth-image:hover {
-  transform: scale(1.02);
-}
-
 .auth-image-caption {
   text-align: center;
-  max-width: 80%;
+  max-width: 90%;
   color: #333;
+  margin-top: 1vh;
 }
 
 .auth-image-caption h2 {
-  font-size: 22px;
-  margin-bottom: 15px;
+  font-size: clamp(20px, 2.2vmin, 22px);
+  margin-bottom: 1vh;
   color: #333;
   font-weight: 500;
 }
 
 .auth-image-caption p {
-  font-size: 15px;
+  font-size: clamp(15px, 1.8vmin, 15px);
   color: #555;
-  line-height: 1.5;
+  line-height: 1.4;
 }
 
 .auth-form-section {
   flex: 0.5;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: top;
   align-items: center;
-  padding: 0px 30px;
+  padding: 0 3%;
   background-color: #fff;
+  border-radius: 2.5vh;
+  height: 100%;
+  margin-right: 3%;
+  max-height: 800px;
 }
 
 .auth-box {
   width: 100%;
   max-width: 400px;
-  padding: 20px;
+  padding: 3vh 3%;
   background-color: #fff;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  height: 100%; /* Full height */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .auth-toggle {
   display: flex;
   justify-content: center;
   gap: 10px;
-  margin-bottom: 15px;
+  margin-bottom: 2vh;
   border-bottom: 1px solid #e5e7eb;
-  padding-bottom: 10px;
+  padding-bottom: 1vh;
 }
 
 .auth-toggle button {
   background: transparent;
   color: #555;
   border: none;
-  padding: 8px 16px;
+  padding: 0.6vh 1em;
   cursor: pointer;
   transition: all 0.2s;
   font-weight: 500;
-  font-size: 15px;
+  font-size: clamp(13px, 1.8vmin, 15px);
   position: relative;
 }
 
@@ -147,7 +155,7 @@ body, html {
 .auth-toggle button.active::after {
   content: '';
   position: absolute;
-  bottom: -11px;
+  bottom: -1vh;
   left: 0;
   width: 100%;
   height: 2px;
@@ -162,30 +170,31 @@ body, html {
   height: 100%;
   display: flex;
   flex-direction: column;
+  flex: 1; /* Take remaining space */
 }
 
 .auth-form h2 {
-  margin-bottom: 15px;
+  margin-bottom: 2vh;
   color: #333;
   font-weight: 500;
-  font-size: 20px;
+  font-size: clamp(16px, 2vmin, 20px);
 }
 
 .auth-form .form-group {
   width: 100%;
   box-sizing: border-box;
-  margin-bottom: 12px;
+  margin-bottom: 2vh;
 }
 
 .auth-form input, 
 .auth-form select {
   width: 100%;
   box-sizing: border-box;
-  padding: 10px 14px;
-  margin: 6px 0;
+  padding: 1.2vh 14px;
+  margin: 0.8vh 0;
   border: 1px solid #ddd;
   border-radius: 6px;
-  font-size: 14px;
+  font-size: clamp(13px, 1.6vmin, 14px);
   transition: all 0.2s;
   background-color: #fff;
 }
@@ -201,7 +210,7 @@ body, html {
   display: flex;
   flex-wrap: wrap; 
   gap: 10px;
-  margin-bottom: 12px;
+  margin-bottom: 2vh;
 }
 
 .form-row .form-group {
@@ -212,10 +221,10 @@ body, html {
 
 .scrollable-form {
   overflow-y: auto;
-  max-height: 250px;
+  flex: 1; /* Take remaining space */
   padding-right: 10px;
-  margin-bottom: 10px;
-  -ms-overflow-style: none;  /* IE and Edge */
+  margin-bottom: 2vh;
+  -ms-overflow-style: none;
   scrollbar-width: thin;  
 }
 
@@ -238,21 +247,24 @@ body, html {
 }
 
 .register-form {
-  max-height: 420px;
+  max-height: none; /* Allow full height */
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
 
 .auth-form button[type="submit"] {
   width: 100%;
   background: #294b7a;
   color: white;
-  padding: 10px;
+  padding: 1.5vh 10px;
   border: none;
   border-radius: 6px;
-  font-size: 15px;
+  font-size: clamp(14px, 1.8vmin, 15px);
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s;
-  margin-top: 10px;
+  margin-top: 2vh;
   position: relative;
   overflow: hidden;
 }
@@ -269,10 +281,10 @@ body, html {
 
 .error {
   color: #d32f2f;
-  font-size: 13px;
-  margin: 3px 0 10px;
+  font-size: clamp(12px, 1.5vmin, 13px);
+  margin: 0.5vh 0 1.5vh;
   background-color: rgba(211, 47, 47, 0.08);
-  padding: 6px 10px;
+  padding: 0.8vh 10px;
   border-radius: 4px;
   border-left: 3px solid #d32f2f;
   text-align: left;
@@ -280,17 +292,17 @@ body, html {
 
 .success {
   color: #388e3c;
-  font-size: 13px;
-  margin: 3px 0 10px;
+  font-size: clamp(12px, 1.5vmin, 13px);
+  margin: 0.5vh 0 1.5vh;
   background-color: rgba(56, 142, 60, 0.08);
-  padding: 6px 10px;
+  padding: 0.8vh 10px;
   border-radius: 4px;
   border-left: 3px solid #388e3c;
   text-align: left;
 }
 
 .google-login-container {
-  margin-top: 15px;
+  margin-top: 2.5vh;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -302,7 +314,7 @@ body, html {
   align-items: center;
   text-align: center;
   width: 100%;
-  margin: 10px 0;
+  margin: 2vh 0;
 }
 
 .separator::before, 
@@ -315,15 +327,15 @@ body, html {
 .separator span {
   padding: 0 10px;
   color: #777;
-  font-size: 13px;
+  font-size: clamp(12px, 1.5vmin, 13px);
 }
 
 .forgot-password, 
 .back-to-login {
   color: #294b7a;
-  margin-top: 10px;
+  margin-top: 2vh;
   cursor: pointer;
-  font-size: 13px;
+  font-size: clamp(12px, 1.5vmin, 13px);
   transition: all 0.2s;
   display: inline-block;
   text-align: center;
@@ -342,7 +354,7 @@ body, html {
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(1vh);
   }
   to {
     opacity: 1;
@@ -350,30 +362,77 @@ body, html {
   }
 }
 
-@media (max-width: 768px) {
-  .auth-container {
-    flex-direction: column;
-    width: 95%;
-  }
-  
-  .auth-image-section,
-  .auth-form-section {
-    flex: none;
-  }
-  
+/* Media queries for responsive design */
+@media screen and (max-width: 768px) {
+  /* Hide image section on mobile */
   .auth-image-section {
-    padding: 20px 20px 10px 20px;
+    display: none;
   }
   
-  .auth-image {
-    max-width: 70%;
+  /* Make form section take full width */
+  .auth-form-section {
+    flex: 1;
+    margin-right: 0;
+    padding: 0 5%;
+    max-height: none;
+    height: 100%;
+    border-radius: 0;
   }
   
-  .auth-image-caption h2 {
-    font-size: 20px;
+  /* Adjust container for mobile */
+  .auth-container {
+    width: 100%;
+    height: 100vh;
+    border-radius: 0;
   }
   
-  .auth-image-caption p {
+  /* Ensure the auth box fits properly */
+  .auth-box {
+    max-width: 100%;
+    padding: 2vh 2%;
+  }
+  
+  /* Adjust form rows for smaller screens */
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+  
+  /* Make library title slightly smaller on mobile */
+  .library-title {
+    font-size: clamp(24px, 5vw, 28px);
+    margin-top: 2vh;
+  }
+  
+  /* Allow scrolling on mobile */
+  body, html {
+    overflow: auto;
+  }
+  
+  /* Ensure the auth page is full height */
+  .auth-page {
+    min-height: 100vh;
+    height: auto;
+  }
+}
+
+/* For very small screens */
+@media screen and (max-width: 480px) {
+  .auth-form-section {
+    padding: 0 3%;
+  }
+  
+  .auth-toggle button {
     font-size: 14px;
+    padding: 0.5vh 0.8em;
+  }
+  
+  .auth-form input, 
+  .auth-form select {
+    padding: 10px;
+  }
+  
+  .auth-form button[type="submit"] {
+    padding: 12px 10px;
   }
 }
