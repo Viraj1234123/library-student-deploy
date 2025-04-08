@@ -342,8 +342,118 @@ const Dashboard = () => {
                     <div className="profile-completion-form">
                         <h3>{userProfile?.dateOfBirth && userProfile?.gender ? "Edit Profile" : "Complete Your Profile"}</h3>
                         <form onSubmit={handleProfileSubmit}>
-                            {/* Form fields remain the same */}
-                            {/* ... (previous form code unchanged) ... */}
+                            {/* Only show department field if it's not already set */}
+                            {!isFieldComplete("department") && (
+                                <div className="form-field">
+                                    <label htmlFor="department">Department</label>
+                                    <select
+                                        id="department"
+                                        name="department"
+                                        value={formData.department}
+                                        onChange={handleInputChange}
+                                        required
+                                    >
+                                        <option value="">Select Department</option>
+                                        <option value="Computer Science">Computer Science</option>
+                                        <option value="Electrical Engineering">Electrical Engineering</option>
+                                        <option value="Mechanical Engineering">Mechanical Engineering</option>
+                                        <option value="Civil Engineering">Civil Engineering</option>
+                                        <option value="Chemical Engineering">Chemical Engineering</option>
+                                        <option value="Biotechnology">Biotechnology</option>
+                                        <option value="Physics">Physics</option>
+                                        <option value="Chemistry">Chemistry</option>
+                                        <option value="Mathematics">Mathematics</option>
+                                    </select>
+                                </div>
+                            )}
+                            
+                            {/* Only show degree field if it's not already set */}
+                            {!isFieldComplete("degree") && (
+                                <div className="form-field">
+                                    <label htmlFor="degree">Degree</label>
+                                    <select
+                                        id="degree"
+                                        name="degree"
+                                        value={formData.degree}
+                                        onChange={handleInputChange}
+                                        required
+                                    >
+                                        <option value="">Select Degree</option>
+                                        <option value="B.Tech">B.Tech</option>
+                                        <option value="M.Tech">M.Tech</option>
+                                        <option value="PhD">PhD</option>
+                                        <option value="B.Sc">B.Sc</option>
+                                        <option value="M.Sc">M.Sc</option>
+                                    </select>
+                                </div>
+                            )}
+                            
+                            {/* Only show phone number field if it's not already set */}
+                            {!isFieldComplete("phoneNumber") && (
+                                <div className="form-field">
+                                    <label htmlFor="phoneNumber">Phone Number</label>
+                                    <input
+                                        type="tel"
+                                        id="phoneNumber"
+                                        name="phoneNumber"
+                                        value={formData.phoneNumber}
+                                        onChange={handleInputChange}
+                                        placeholder="Enter your phone number"
+                                        required
+                                    />
+                                </div>
+                            )}
+                            
+                            {/* New fields - always editable */}
+                            <div className="form-field">
+                                <label htmlFor="dateOfBirth">Date of Birth</label>
+                                <input
+                                    type="date"
+                                    id="dateOfBirth"
+                                    name="dateOfBirth"
+                                    value={formData.dateOfBirth}
+                                    onChange={handleInputChange}
+                                    required
+                                />
+                            </div>
+                            
+                            <div className="form-field">
+                                <label htmlFor="gender">Gender</label>
+                                <select
+                                    id="gender"
+                                    name="gender"
+                                    value={formData.gender}
+                                    onChange={handleInputChange}
+                                    required
+                                >
+                                    <option value="">Select Gender</option>
+                                    <option value='M'>Male</option>
+                                    <option value='F'>Female</option>
+                                    <option value='O'>Other</option>
+                                </select>
+                            </div>
+                            
+                            <div className="form-field">
+                                <label htmlFor="password">Password</label>
+                                <input
+                                    type="password"
+                                    id="password"
+                                    name="password"
+                                    value={formData.password}
+                                    onChange={handleInputChange}
+                                    required
+                                    placeholder="Enter password which you can use to login"
+                                />
+                            </div>
+                            
+                            <div className="form-actions">
+                                <button type="button" className="skip-btn" onClick={handleSkipProfile}>
+                                    Cancel
+                                </button>
+                                <button type="submit" className="save-profile-btn" >
+                                    Save Profile
+                                </button>
+                            </div>
                         </form>
                     </div>
                 </div>
