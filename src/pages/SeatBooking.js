@@ -8,7 +8,7 @@ import ProfileButton from "../components/ProfileButton";
 import Alert from "../components/Alert";
 
 // Initialize WebSocket connection
-const socket = io("http://localhost:3000"); // Replace with your server URL
+const socket = io(process.env.REACT_APP_BACKEND_URL); // Replace with your server URL
 
 const SeatBooking = () => {
   const navigate = useNavigate();
