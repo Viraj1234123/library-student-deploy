@@ -5,28 +5,28 @@ import API from "../api";
 
 const Sidebar = ({ isCollapsed, toggleSidebar, activeItem, onLogout }) => {
   const navigate = useNavigate();
-
+  
   const handleLogout = async () => {
     try {
-        await API.post("/students/logout");
-        navigate("/");
+      await API.post("/students/logout");
+      navigate("/");
     } catch (error) {
-        console.error("Error during logout", error);
-        navigate("/");
+      console.error("Error during logout", error);
+      navigate("/");
     }
   };
-
+  
   return (
     <div className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
       <div className="sidebar-header">
-        <h2 className="sidebar-title">
-          {!isCollapsed && " Student Portal"}
-          {isCollapsed && ""}
-        </h2>
         <button className="toggle-btn" onClick={toggleSidebar}>
           <span className="hamburger-icon">☰</span>
         </button>
+        {!isCollapsed && (
+          <h2 className="sidebar-title">Student Portal</h2>
+        )}
       </div>
+      
       <ul className="sidebar-menu">
         <li
           className={activeItem === "dashboard" ? "active" : ""}
@@ -79,15 +79,17 @@ const Sidebar = ({ isCollapsed, toggleSidebar, activeItem, onLogout }) => {
         </li>
       </ul>
       
-      {/* <div className="sidebar-logout-section">
-        <button 
-          className="logout-btn" 
+      {/* Uncomment if you want to use the logout section
+      <div className="sidebar-footer">
+        <button
+          className="logout-btn"
           onClick={handleLogout}
         >
           <span className="menu-icon">🚪</span>
           {!isCollapsed && <span className="menu-text">Logout</span>}
         </button>
-      </div> */}
+      </div>
+      */}
     </div>
   );
 };

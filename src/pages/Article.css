@@ -80,7 +80,7 @@ input:focus, textarea:focus {
   border-color: #4a90e2;
   outline: none;
 }
-.article-request-form .submit-button {
+.article-request-form .artice-submit-button {
   background-color: #2a5298;
   color: white;
   border: none;
@@ -89,13 +89,12 @@ input:focus, textarea:focus {
   font-size: 16px;
   font-weight: bold;
   cursor: pointer;
-  width: 100%;
   transition: background-color 0.3s;
 }
-.submit-button:hover {
+.artice-submit-button:hover {
   background-color: #3a80d2;
 }
-.submit-button:disabled {
+.artice-submit-button:disabled {
   background-color: #a0c0e4;
   cursor: not-allowed;
 }
@@ -135,6 +134,10 @@ input:focus, textarea:focus {
   background-color: #3a80d2;
 }
 
+#publicationYear{
+  width: 90%;
+}
+
 /* Responsive design
 @media (max-width: 1024px) {
   .article-request-form-container {
@@ -161,7 +164,7 @@ input:focus, textarea:focus {
     padding: 15px;
     padding-right: 15px;
   }
-  .submit-button {
+  .artice-submit-button {
     width: 100%;
   }
   .action-buttons {
@@ -190,3 +193,4 @@ input:focus, textarea:focus {
     font-size: 16px;
   }
 } */
+ 

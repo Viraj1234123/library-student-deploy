@@ -4,12 +4,17 @@ import API from "../api";
 import "./Article.css";
 import Sidebar from "../components/Sidebar";
 import ProfileButton from "../components/ProfileButton";
+import Alert from "../components/Alert";
 
 const ArticleRequest = () => {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
+  const [alertType, setAlertType] = useState("error"); // Can be "error", "warning", "success", "info"
+  
   const [formData, setFormData] = useState({
     title: "",
     authors: "",
@@ -22,6 +27,12 @@ const ArticleRequest = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const displayAlert = (message, type = "error") => {
+    setAlertMessage(message);
+    setAlertType(type);
+    setShowAlert(true);
   };
 
   const handleSubmit = async (e) => {
@@ -39,9 +50,10 @@ const ArticleRequest = () => {
         DOI: "",
         additionalInfo: ""
       });
+      displayAlert("Article request submitted successfully!", "success");
     } catch (error) {
       console.error("Error submitting article request:", error);
-      alert("Failed to submit article request. Please try again.");
+      displayAlert("Failed to submit article request. Please try again later.");
     } finally {
       setIsSubmitting(false);
     }
@@ -51,8 +63,21 @@ const ArticleRequest = () => {
     setIsCollapsed(!isCollapsed);
   };
 
+  const dismissAlert = () => {
+    setShowAlert(false);
+  };
+
   return (
     <div className="dashboard-container article-request-container">
+      {/* Alert Component */}
+      <Alert 
+        message={alertMessage}
+        type={alertType}
+        show={showAlert}
+        onDismiss={dismissAlert}
+        autoDismissTime={5000}
+      />
+      
       {/* Sidebar Component */}
       <Sidebar 
         isCollapsed={isCollapsed} 
@@ -62,11 +87,10 @@ const ArticleRequest = () => {
 
       {/* Main Content */}
       <div className="main-content">
-        <div className="article-request-header">
-          <h1>📝 Request an Article</h1>
+        <div className="dashboard-header">
+          <div className="heading_color">📝 Request an Article</div>
           <ProfileButton />
         </div>
-
 
         {submitted ? (
           <div className="success-message">
@@ -175,7 +199,7 @@ const ArticleRequest = () => {
 
               <button
                 type="submit"
-                className="submit-button"
+                className="artice-submit-button"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? "Submitting..." : "Submit Request"}

@@ -4,6 +4,7 @@ import Sidebar from "../components/Sidebar";
 import API from "../api";
 import "./Complaints.css";
 import ProfileButton from "../components/ProfileButton";
+import Alert from "../components/Alert";
 
 const Complaint = () => {
   const navigate = useNavigate();
@@ -19,11 +20,28 @@ const Complaint = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formErrors, setFormErrors] = useState({});
   const [formType, setFormType] = useState(null);
+  
+  // Alert state
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
+  const [alertType, setAlertType] = useState("success");
 
   useEffect(() => {
     fetchMyComplaints();
     fetchAllComplaints();
   }, []);
+
+  // Display alert function
+  const displayAlert = (message, type) => {
+    setAlertMessage(message);
+    setAlertType(type);
+    setShowAlert(true);
+  };
+
+  // Dismiss alert function
+  const dismissAlert = () => {
+    setShowAlert(false);
+  };
 
   const fetchMyComplaints = async () => {
     try {
@@ -31,15 +49,17 @@ const Complaint = () => {
       setMyComplaints(res.data.data);
     } catch (err) {
       console.error("Error fetching my complaints:", err);
+      displayAlert("Failed to fetch your complaints. Please try again.", "error");
     }
   };
 
   const fetchAllComplaints = async () => {
     try {
-      const res = await API.get("/complaints");
+      const res = await API.get("/students/get-my-complaints");
       setAllComplaints(res.data.data);
     } catch (err) {
       console.error("Error fetching all complaints:", err);
+      displayAlert("Failed to fetch complaints. Please try again.", "error");
     }
   };
 
@@ -85,22 +105,22 @@ const Complaint = () => {
       });
 
       if (res.status === 201) {
-        const successElement = document.getElementById("submission-success");
-        successElement.style.display = "flex";
-        setTimeout(() => {
-          successElement.style.display = "none";
-        }, 3000);
+        // Use Alert component instead of DOM manipulation
+        displayAlert(
+          `Your ${formType === "complaint" ? "complaint" : "feedback"} has been submitted successfully!`, 
+          "success"
+        );
         
         fetchMyComplaints();
         fetchAllComplaints();
         setNewComplaint({ title: "", description: "", attachments: [] });
         setFormType(null);
       } else {
-        alert("Failed to submit");
+        displayAlert(`Failed to submit ${formType}. Please try again.`, "error");
       }
     } catch (err) {
       console.error("Error submitting:", err);
-      alert("Error submitting");
+      displayAlert(`Error submitting ${formType}. Please try again later.`, "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -190,7 +210,16 @@ const Complaint = () => {
   };
 
   return (
-    <div className="app-container">
+    <div className="dashboard-container">
+      {/* Alert Component */}
+      <Alert
+        message={alertMessage}
+        type={alertType}
+        show={showAlert}
+        onDismiss={dismissAlert}
+        autoDismissTime={5000}
+      />
+    
       <Sidebar 
         isCollapsed={isCollapsed} 
         toggleSidebar={toggleSidebar} 
@@ -198,18 +227,13 @@ const Complaint = () => {
       />
       
       <div className="main-content">
-        <div className="complaint-container">
-          <div className="page-header repositioned">
-            <h1>Complaints & Feedback</h1>
+      <div className="dashboard-header">
+            <div className="heading_color">📩 Complaints & Feedback</div>
             <ProfileButton />
             {/* <p className="header-subtitle">Submit and track your submissions</p> */}
           </div>
+        <div className="complaint-container">
           
-          {/* Success message */}
-          <div id="submission-success" className="success-message">
-            <span className="success-icon">✓</span>
-            <span>Your submission has been received successfully!</span>
-          </div>
 
           {!formType && (
             <>

@@ -375,15 +375,17 @@ body, html {
     margin-right: 0;
     padding: 0 5%;
     max-height: none;
-    height: 100%;
-    border-radius: 0;
+    height: 600px;
+  }
+
+  .auth-form-section .error{
+    height: 700px;
   }
   
   /* Adjust container for mobile */
   .auth-container {
-    width: 100%;
+    width: min(90%,400px);
     height: 100vh;
-    border-radius: 0;
   }
   
   /* Ensure the auth box fits properly */
@@ -420,6 +422,10 @@ body, html {
 @media screen and (max-width: 480px) {
   .auth-form-section {
     padding: 0 3%;
+  }
+
+  .auth-box {
+    border-radius: 4%;
   }
   
   .auth-toggle button {

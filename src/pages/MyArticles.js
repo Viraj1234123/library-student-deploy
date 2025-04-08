@@ -100,8 +100,8 @@ const MyArticles = () => {
       {/* Main Content */}
       <div className="main-content">
         <div className="my-articles-container">
-          <div className="my-articles-header">
-            <h1>📂 My Article Requests</h1>
+          <div className="dashboard-header">
+            <div className="heading_color">📂 My Article Requests</div>
             <div className="header-buttons">
               <button className="request-button" onClick={handleRequestNew}>
                 + New Request

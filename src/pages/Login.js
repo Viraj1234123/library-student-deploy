@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import API from "../api";
 import "./Login.css";
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import axios from 'axios';
 import image from "../assets/login.jpg";
-import libraryLogo from "../assets/logo.jpg"
+import libraryLogo from "../assets/logo.jpg";
+import Alert from "../components/Alert";
 
 const googleClientId = process.env.REACT_APP_GOOGLE_CLIENT_ID;
 
@@ -17,17 +18,37 @@ const Auth = () => {
   // Student Login states
   const [studentEmail, setStudentEmail] = useState("");
   const [studentPassword, setStudentPassword] = useState("");
-  const [studentLoginError, setStudentLoginError] = useState("");
-
+  
   // Admin Login states
   const [adminEmail, setAdminEmail] = useState("");
   const [adminPassword, setAdminPassword] = useState("");
-  const [adminLoginError, setAdminLoginError] = useState("");
-
+  
   // Forgot password states
   const [forgotEmail, setForgotEmail] = useState("");
-  const [forgotError, setForgotError] = useState("");
-  const [forgotSuccess, setForgotSuccess] = useState("");
+
+  // Alert state
+  const [alert, setAlert] = useState({
+    show: false,
+    message: "",
+    type: "error"
+  });
+
+  // Handle showing alerts
+  const showAlert = (message, type = "error") => {
+    setAlert({
+      show: true,
+      message,
+      type
+    });
+  };
+
+  // Handle dismissing alerts
+  const dismissAlert = () => {
+    setAlert({
+      ...alert,
+      show: false
+    });
+  };
 
   // Input handlers
   const handleStudentLoginChange = (e) => {
@@ -45,25 +66,25 @@ const Auth = () => {
   // Form submission handlers
   const handleStudentLogin = async (e) => {
     e.preventDefault();
-    setStudentLoginError("");
+    dismissAlert();
     try {
       const res = await API.post("/students/login", { email: studentEmail, password: studentPassword });
       if (res?.data) navigate("/dashboard");
     } catch (err) {
       console.error("Student Login Error:", err);
-      setStudentLoginError(err.response?.data?.message || "Login failed. Please check your credentials.");
+      showAlert(err.response?.data?.message || "Login failed. Please check your credentials.");
     }
   };
 
   const handleAdminLogin = async (e) => {
     e.preventDefault();
-    setAdminLoginError("");
+    dismissAlert();
     try {
       const res = await API.post("/admins/login", { email: adminEmail, password: adminPassword });
       if (res?.data) navigate("/admin");
     } catch (err) {
       console.error("Admin Login Error:", err);
-      setAdminLoginError(err.response?.data?.message || "Login failed. Please check your credentials.");
+      showAlert(err.response?.data?.message || "Login failed. Please check your credentials.");
     }
   };
 
@@ -82,37 +103,46 @@ const Auth = () => {
       }
     } catch (error) {
       console.error('Google Login Error:', error);
-      if (isAdmin) {
-        setAdminLoginError("Google login failed. Please try again.");
-      } else {
-        setStudentLoginError("Google login failed. Please try again.");
-      }
+      showAlert("Google login failed. Please try again.");
     }
   };
 
   const handleForgotPassword = async (e) => {
     e.preventDefault();
-    setForgotError("");
-    setForgotSuccess("");
+    dismissAlert();
     
-    const endpoint = activeTab === "student" ? "/students/reset-password-request" : "/admin/reset-password-request";
+    const endpoint = activeTab === "student" ? "/students/reset-password-request" : "/admins/reset-password-request";
     
     try {
       const res = await API.post(endpoint, { email: forgotEmail });
-      if (res.data.success) {
-        setForgotSuccess("A reset link has been sent to your email.");
+      if (res.status === 200) {
+        showAlert("A reset link has been sent to your email.", "success");
       } else {
-        setForgotError(res.data.message || "Reset password request failed. Please try again.");
+        showAlert(res.data.message || "Reset password request failed. Please try again.");
       }
     } catch (err) {
       console.error("Forgot Password Error:", err);
-      setForgotError(err.response?.data?.message || "Reset password request failed. Please try again.");
+      showAlert(err.response?.data?.message || "Reset password request failed. Please try again.");
     }
   };
+
+  // Clear alerts when switching tabs or forms
+  useEffect(() => {
+    dismissAlert();
+  }, [activeTab, isForgotPassword]);
 
   return (
     <GoogleOAuthProvider clientId={googleClientId}>
       <div className="auth-page">
+        {/* Alert Component */}
+        <Alert 
+          message={alert.message}
+          type={alert.type}
+          show={alert.show}
+          onDismiss={dismissAlert}
+          autoDismissTime={5000}
+        />
+        
         {/* Library title at the top center */}
         <div className="library-title">
           <div className="library-logo">
@@ -171,8 +201,6 @@ const Auth = () => {
               {isForgotPassword ? (
                 <form onSubmit={handleForgotPassword} className="auth-form">
                   <h2>Reset Password</h2>
-                  {forgotError && <p className="error">{forgotError}</p>}
-                  {forgotSuccess && <p className="success">{forgotSuccess}</p>}
                   <div className="form-group">
                     <label htmlFor="forgot-email">Email Address</label>
                     <input
@@ -192,7 +220,6 @@ const Auth = () => {
               ) : activeTab === "student" ? (
                 <form onSubmit={handleStudentLogin} className="auth-form">
                   <h2>Student Sign In</h2>
-                  {studentLoginError && <p className="error">{studentLoginError}</p>}
                   <div className="form-group">
                     <label htmlFor="student-email">Email Address</label>
                     <input
@@ -228,7 +255,7 @@ const Auth = () => {
                       onSuccess={(response) => handleGoogleLogin(response, false)}
                       onError={(error) => {
                         console.error("Google Login Error:", error);
-                        setStudentLoginError("Google login failed. Please try again.");
+                        showAlert("Google login failed. Please try again.");
                       }}
                       useOneTap
                       text="sign_in_with"
@@ -240,7 +267,6 @@ const Auth = () => {
               ) : (
                 <form onSubmit={handleAdminLogin} className="auth-form">
                   <h2>Admin Sign In</h2>
-                  {adminLoginError && <p className="error">{adminLoginError}</p>}
                   <div className="form-group">
                     <label htmlFor="admin-email">Email Address</label>
                     <input
@@ -277,7 +303,7 @@ const Auth = () => {
                       onSuccess={(response) => handleGoogleLogin(response, true)}
                       onError={(error) => {
                         console.error("Google Login Error:", error);
-                        setAdminLoginError("Google login failed. Please try again.");
+                        showAlert("Google login failed. Please try again.");
                       }}
                       useOneTap
                       text="sign_in_with"

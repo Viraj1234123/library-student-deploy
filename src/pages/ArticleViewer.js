@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import API from "../api";
 import "./ArticleViewer.css";
+import Alert from "../components/Alert";
 
 const ArticleViewer = () => {
   const { id } = useParams();
@@ -10,8 +11,14 @@ const ArticleViewer = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [pageImage, setPageImage] = useState(null);
+  
+  // Replace error state with alert state
+  const [alert, setAlert] = useState({
+    show: false,
+    message: "",
+    type: "error"
+  });
 
   useEffect(() => {
     const fetchArticleMetadata = async () => {
@@ -24,11 +31,23 @@ const ArticleViewer = () => {
       } catch (err) {
         console.error("Error fetching article:", err);
         if (err.response?.status === 403) {
-          setError("You don't have permission to view this article.");
+          setAlert({
+            show: true,
+            message: "You don't have permission to view this article.",
+            type: "error"
+          });
         } else if (err.response?.status === 400) {
-          setError("This article is no longer available or has expired.");
+          setAlert({
+            show: true,
+            message: "This article is no longer available or has expired.",
+            type: "warning"
+          });
         } else {
-          setError("Failed to load the article. Please try again later.");
+          setAlert({
+            show: true,
+            message: "Failed to load the article. Please try again later.",
+            type: "error"
+          });
         }
       } finally {
         setIsLoading(false);
@@ -56,7 +75,11 @@ const ArticleViewer = () => {
         setPageImage(imageUrl);
       } catch (err) {
         console.error("Error fetching page image:", err);
-        setError("Failed to load the page image. Please try again later.");
+        setAlert({
+          show: true,
+          message: "Failed to load the page image. Please try again later.",
+          type: "error"
+        });
       } finally {
         setIsLoading(false);
       }
@@ -82,9 +105,24 @@ const ArticleViewer = () => {
     }
   };
 
+  // Function to dismiss alert
+  const dismissAlert = () => {
+    setAlert({
+      ...alert,
+      show: false
+    });
+  };
+
   if (isLoading && !article) {
     return (
       <div className="article-viewer-container">
+        <Alert 
+          message={alert.message}
+          type={alert.type}
+          show={alert.show}
+          onDismiss={dismissAlert}
+          autoDismissTime={5000}
+        />
         <div className="loading-container">
           <div className="loading-spinner"></div>
           <p>Loading article...</p>
@@ -93,12 +131,18 @@ const ArticleViewer = () => {
     );
   }
 
-  if (error && !article) {
+  if (!article && alert.show) {
     return (
       <div className="article-viewer-container">
+        <Alert 
+          message={alert.message}
+          type={alert.type}
+          show={alert.show}
+          onDismiss={dismissAlert}
+          autoDismissTime={5000}
+        />
         <div className="error-message">
           <h2>Error</h2>
-          <p>{error}</p>
           <button onClick={handleBack}>Back to My Articles</button>
         </div>
       </div>
@@ -108,9 +152,15 @@ const ArticleViewer = () => {
   if (!article) {
     return (
       <div className="article-viewer-container">
+        <Alert 
+          message="The requested article could not be found."
+          type="error"
+          show={true}
+          onDismiss={dismissAlert}
+          autoDismissTime={5000}
+        />
         <div className="error-message">
           <h2>Article Not Found</h2>
-          <p>The requested article could not be found.</p>
           <button onClick={handleBack}>Back to My Articles</button>
         </div>
       </div>
@@ -119,6 +169,14 @@ const ArticleViewer = () => {
 
   return (
     <div className="article-viewer-container">
+      <Alert 
+        message={alert.message}
+        type={alert.type}
+        show={alert.show}
+        onDismiss={dismissAlert}
+        autoDismissTime={5000}
+      />
+      
       <div className="article-viewer-header">
         <div className="article-info">
           <h1>{article.title}</h1>
@@ -148,6 +206,13 @@ const ArticleViewer = () => {
           ) : (
             <div className="error-message">
               <p>Failed to load page image.</p>
+              <button onClick={() => {
+                // Retry loading the current page
+                setPageImage(null);
+                setIsLoading(true);
+              }}>
+                Retry
+              </button>
             </div>
           )}
         </div>

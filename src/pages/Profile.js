@@ -4,6 +4,7 @@ import API from "../api";
 import Sidebar from "../components/Sidebar";
 import "./Profile.css";
 import ProfileButton from "../components/ProfileButton";
+import Alert from "../components/Alert";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -20,9 +21,26 @@ const Profile = () => {
   const [activeTab, setActiveTab] = useState("issuedBooks");
   const [bookingView, setBookingView] = useState("today");
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [alert, setAlert] = useState({
+    show: false,
+    message: "",
+    type: "error"
+  });
 
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);
+  };
+
+  const showAlert = (message, type = "error") => {
+    setAlert({
+      show: true,
+      message,
+      type
+    });
+  };
+
+  const hideAlert = () => {
+    setAlert(prev => ({ ...prev, show: false }));
   };
 
   const categorizeBookings = (bookings) => {
@@ -77,6 +95,7 @@ const Profile = () => {
                 };
               } catch (err) {
                 console.error("Error fetching title for book:", book.bookId, err);
+                showAlert(`Couldn't load complete details for some books`, "warning");
                 return book;
               }
             }
@@ -86,7 +105,10 @@ const Profile = () => {
           setIssuedBooks(categorizeBooks(updatedBooks));
         });
       })
-      .catch((err) => console.error("Error fetching issued books:", err));
+      .catch((err) => {
+        console.error("Error fetching issued books:", err);
+        showAlert("Failed to load your issued books. Please try again later.", "error");
+      });
 
     // Fetch all seat bookings for the student
     API.get("/seat-bookings/get-all-of-student-with-seat-details")
@@ -94,13 +116,16 @@ const Profile = () => {
         const seatData = res.data.data || [];
         setSeatBookings(categorizeBookings(seatData));
       })
-      .catch((err) => console.error("Error fetching seat bookings:", err));
+      .catch((err) => {
+        console.error("Error fetching seat bookings:", err);
+        showAlert("Failed to load your seat bookings. Please try again later.", "error");
+      });
   }, []);
 
   const handleCancelBooking = (bookingId) => {
     API.delete(`/seat-bookings/cancel-booking/${bookingId}`)
       .then(() => {
-        alert("Booking cancelled successfully");
+        showAlert("Booking cancelled successfully", "success");
         setSeatBookings(prev => {
           const updatedBookings = { ...prev };
           Object.keys(updatedBookings).forEach(key => {
@@ -110,14 +135,14 @@ const Profile = () => {
         });
       })
       .catch((err) =>
-        alert(err.response?.data?.message || "Error cancelling booking")
+        showAlert(err.response?.data?.message || "Error cancelling booking", "error")
       );
   };
 
   const handleCancelIssuedBook = (bookingId) => {
     API.delete(`/issue-books/cancel/${bookingId}`)
       .then(() => {
-        alert("Booked book cancelled successfully");
+        showAlert("Booked book cancelled successfully", "success");
         setIssuedBooks(prev => {
           const updatedBooks = { ...prev };
           updatedBooks.booked = updatedBooks.booked.filter(book => book._id !== bookingId);
@@ -125,7 +150,7 @@ const Profile = () => {
         });
       })
       .catch((err) =>
-        alert(err.response?.data?.message || "Error cancelling booked book")
+        showAlert(err.response?.data?.message || "Error cancelling booked book", "error")
       );
   };
 
@@ -315,7 +340,15 @@ const Profile = () => {
   };
 
   return (
-    <div className="app-container">
+    <div className="dashboard-container">
+      <Alert 
+        show={alert.show}
+        type={alert.type}
+        message={alert.message}
+        onDismiss={hideAlert}
+        autoDismissTime={5000}
+      />
+      
       <Sidebar 
         isCollapsed={isCollapsed} 
         toggleSidebar={toggleSidebar} 
@@ -323,11 +356,13 @@ const Profile = () => {
       />
       
       <div className={`main-content ${isCollapsed ? 'expanded' : ''}`}>
-        <div className="bookings-container">
-          <div className="page-header">
-            <h1 className="page-title">My Bookings</h1>
+
+      <div className="dashboard-header">
+            <div className="heading_color">🗓️ My Bookings</div>
             <ProfileButton />
           </div>
+        <div className="bookings-container">
+          
           
           {/* Tab Navigation */}
           <div className="bookings-tabs">

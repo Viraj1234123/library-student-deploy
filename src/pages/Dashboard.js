@@ -6,6 +6,7 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import "./Dashboard.css";
 import Sidebar from "../components/Sidebar";
+import Alert from "../components/Alert";
 
 const Dashboard = () => {
     const navigate = useNavigate();
@@ -23,6 +24,12 @@ const Dashboard = () => {
         gender: "M",
         password: ""
     });
+    // Add state for alert
+    const [alert, setAlert] = useState({
+        show: false,
+        message: "",
+        type: "error"
+    });
     
     const profileDropdownRef = useRef(null);
     
@@ -33,6 +40,11 @@ const Dashboard = () => {
                 setAnnouncements(response.data.data);
             } catch (error) {
                 console.error("Error fetching announcements", error);
+                setAlert({
+                    show: true,
+                    message: "Failed to load announcements",
+                    type: "error"
+                });
             }
         };
         
@@ -69,6 +81,11 @@ const Dashboard = () => {
                 }
             } catch (error) {
                 console.error("Error fetching user profile", error);
+                setAlert({
+                    show: true,
+                    message: "Failed to load user profile",
+                    type: "error"
+                });
             }
         };
         
@@ -101,10 +118,24 @@ const Dashboard = () => {
     const handleLogout = async () => {
         try {
             await API.post("/students/logout");
-            navigate("/");
+            setAlert({
+                show: true,
+                message: "Logged out successfully",
+                type: "success"
+            });
+            setTimeout(() => {
+                navigate("/");
+            }, 1000);
         } catch (error) {
             console.error("Error during logout", error);
-            navigate("/");
+            setAlert({
+                show: true,
+                message: "Failed to logout properly",
+                type: "warning"
+            });
+            setTimeout(() => {
+                navigate("/");
+            }, 1000);
         }
     };
 
@@ -165,14 +196,31 @@ const Dashboard = () => {
                 ...updateData
             });
             setShowProfileCompletion(false);
+            setAlert({
+                show: true,
+                message: "Profile updated successfully!",
+                type: "success"
+            });
         } catch (error) {
             console.error("Error updating profile", error);
-            alert("Failed to update profile. Please try again.");
+            setAlert({
+                show: true,
+                message: "Failed to update profile. Please try again.",
+                type: "error"
+            });
         }
     };
     
     const handleSkipProfile = () => {
         setShowProfileCompletion(false);
+    };
+
+    // Function to dismiss alert
+    const dismissAlert = () => {
+        setAlert({
+            ...alert,
+            show: false
+        });
     };
 
     // Check if a field is complete and should be read-only
@@ -195,6 +243,15 @@ const Dashboard = () => {
 
     return (
         <div className={`dashboard-container ${isCollapsed ? 'sidebar-collapsed' : ''}`}>
+            {/* Alert component */}
+            <Alert 
+                message={alert.message}
+                type={alert.type}
+                show={alert.show}
+                onDismiss={dismissAlert}
+                autoDismissTime={5000}
+            />
+            
             {/* Use the Sidebar component */}
             <Sidebar 
                 isCollapsed={isCollapsed} 

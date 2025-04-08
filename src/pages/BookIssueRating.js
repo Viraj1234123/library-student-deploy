@@ -5,6 +5,7 @@ import "./BookIssueRating.css";
 import Sidebar from "../components/Sidebar";
 import Profile from "./Profile";
 import ProfileButton from "../components/ProfileButton";
+import Alert from "../components/Alert";
 
 const BookIssueRating = () => {
   const navigate = useNavigate();
@@ -28,9 +29,27 @@ const BookIssueRating = () => {
     subject: "",
     comments: "",
   });
+  // Alert state
+  const [alertInfo, setAlertInfo] = useState({
+    show: false,
+    message: "",
+    type: "error"
+  });
 
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);
+  };
+
+  const dismissAlert = () => {
+    setAlertInfo({ ...alertInfo, show: false });
+  };
+
+  const showAlert = (message, type = "error") => {
+    setAlertInfo({
+      show: true,
+      message,
+      type
+    });
   };
 
   useEffect(() => {
@@ -43,6 +62,7 @@ const BookIssueRating = () => {
       .catch((err) => {
         console.error("Error fetching books:", err);
         setIsLoading(false);
+        showAlert("Failed to load library catalog. Please try again later.", "error");
       });
   }, []);
 
@@ -82,25 +102,24 @@ const BookIssueRating = () => {
     setNewRating("");
     
     try {
-      const checkRes = await API.get(`/get-book/${book._id}`);
-      setIssued(checkRes.data.issued);
-
-      const ratingRes = await API.get(`/ratings/${book._id}`);
-      book.rating = ratingRes.data.rating;
+      const checkRes = await API.get(`books/get-book/${book._id}`);
+      setIssued(checkRes.data.data.issued);
+      book.rating = checkRes.data.data.rating;
       setSelectedBook({ ...book });
     } catch (error) {
       console.error("Error fetching book details:", error);
       setIssued(false);
+      showAlert("Could not load complete book details. Please try again.", "warning");
     }
   };
 
   const handleIssue = async () => {
     try {
       await API.post("/issue-books/book-booking", { bookId: selectedBook._id });
-      alert("Book issued successfully!");
+      showAlert("Book issued successfully!", "success");
       setIssued(true);
     } catch (error) {
-      alert(error);
+      showAlert(error.response?.data?.message || "Failed to issue book", "error");
     }
   };
 
@@ -110,12 +129,12 @@ const BookIssueRating = () => {
 
   const handleRateBook = async () => {
     if (!newRating || newRating < 1 || newRating > 5) {
-      alert("Please enter a rating between 1 and 5");
+      showAlert("Please enter a rating between 1 and 5", "warning");
       return;
     }
     try {
       await API.post("/ratings", { bookId: selectedBook._id, rating: Number(newRating) });
-      alert("Rating submitted successfully!");
+      showAlert("Rating submitted successfully!", "success");
       setNewRating("");
       setShowRatingInput(false);
       
@@ -123,7 +142,7 @@ const BookIssueRating = () => {
       const ratingRes = await API.get(`/ratings/${selectedBook._id}`);
       setSelectedBook({ ...selectedBook, rating: ratingRes.data.data.rating });
     } catch (error) {
-      alert(error);
+      showAlert(error.response?.data?.message || "Failed to submit rating", "error");
     }
   };
 
@@ -134,12 +153,12 @@ const BookIssueRating = () => {
 
   const handleRecommendationSubmit = async () => {
     if (!recommendationData.title || !recommendationData.author || !recommendationData.edition || !recommendationData.subject) {
-      alert("Please fill all required fields");
+      showAlert("Please fill all required fields", "warning");
       return;
     }
     try {
       await API.post("/book-recommendation/create", recommendationData);
-      alert("Book recommendation submitted successfully!");
+      showAlert("Book recommendation submitted successfully!", "success");
       setShowRecommendationForm(false);
       setRecommendationData({
         title: "",
@@ -149,7 +168,7 @@ const BookIssueRating = () => {
         comments: "",
       });
     } catch (error) {
-      alert("Error submitting recommendation");
+      showAlert("Error submitting recommendation", "error");
       console.error(error);
     }
   };
@@ -159,17 +178,18 @@ const BookIssueRating = () => {
   };
 
   return (
-    <div className="app-container">
+    <div className="dashboard-container">
       <Sidebar 
         isCollapsed={isCollapsed} 
         toggleSidebar={toggleSidebar} 
         activeItem="books" 
       />
-      
-      <div className="book-container">
-        <div className="page-header">
+
+      <div className="main-content">
+
+        <div className="dashboard-header">
           <div className="header-left">
-            <h1>📚 Library Catalog</h1>
+          <div className="heading_color">📚 Library Catalog</div>
             <p>Search, borrow, and rate books from our collection</p>
 
             <div className="search-section" ref={searchSectionRef}>
@@ -211,6 +231,16 @@ const BookIssueRating = () => {
             <ProfileButton />
           </div>
         </div>
+      <div className="book-container">
+        <Alert 
+          message={alertInfo.message}
+          type={alertInfo.type}
+          show={alertInfo.show}
+          onDismiss={dismissAlert}
+          autoDismissTime={5000}
+        />
+
+        
 
         {isLoading ? (
           <div className="loading-indicator">Loading library catalog...</div>
@@ -358,6 +388,7 @@ const BookIssueRating = () => {
             </div>
           </div>
         )}
+      </div>
       </div>
     </div>
   );

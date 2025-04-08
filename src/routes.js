@@ -8,6 +8,7 @@ import Complaint from "./pages/Complaints"
 import ArticleRequestForm from "./pages/Article";
 import MyArticles from "./pages/MyArticles";
 import ArticleViewer from "./pages/ArticleViewer";
+import ResetPassword from "./pages/ResetPassword";
 
 const AppRoutes = () => {
     return (
@@ -22,6 +23,7 @@ const AppRoutes = () => {
                 <Route path="/article-request" element={<ArticleRequestForm />} />
                 <Route path="/my-articles" element={<MyArticles />} />
                 <Route path="/article/:id" element={<ArticleViewer />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
             </Routes>
         </Router>
     );

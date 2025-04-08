@@ -1,9 +1,14 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import API from "../api";
+import io from "socket.io-client";
 import "./SeatBooking.css";
 import Sidebar from "../components/Sidebar";
 import ProfileButton from "../components/ProfileButton";
+import Alert from "../components/Alert";
+
+// Initialize WebSocket connection
+const socket = io("http://localhost:3000"); // Replace with your server URL
 
 const SeatBooking = () => {
   const navigate = useNavigate();
@@ -19,70 +24,101 @@ const SeatBooking = () => {
   const [bookedSeatsForTime, setBookedSeatsForTime] = useState([]);
   const [userExistingBookings, setUserExistingBookings] = useState({
     today: [],
-    tomorrow: []
+    tomorrow: [],
   });
   const [todayTimeSlots, setTodayTimeSlots] = useState([]);
   const [tomorrowTimeSlots, setTomorrowTimeSlots] = useState([]);
   const [selectedDay, setSelectedDay] = useState("today");
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [isBookingDisabled, setIsBookingDisabled] = useState(false);
+  const [pendingSelections, setPendingSelections] = useState([]);
+  const [alert, setAlert] = useState({ show: false, message: "", type: "error" }); // Alert state
+  const timeoutRefs = useRef({});
+
+  const maxBookingHours = 5; // Maximum booking hours allowed per day
 
   // Toggle sidebar function
   const toggleSidebar = () => {
     setIsSidebarCollapsed(!isSidebarCollapsed);
   };
 
-  // Check if current time is in the restricted period (11:55 PM to midnight)
-  const checkBookingTimeRestriction = () => {
-    const now = new Date(
-      new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
-    );
-    const hours = now.getHours();
-    const minutes = now.getMinutes();
-    
-    // Check if time is between 11:55 PM (23:55) and midnight (00:00)
-    const isRestricted = hours === 23 && minutes >= 55;
-    
-    setIsBookingDisabled(isRestricted);
-    
-    return isRestricted;
+  // Show alert function
+  const showAlert = (message, type = "error") => {
+    setAlert({ show: true, message, type });
   };
 
-  // Set up a timer to check booking restriction periodically
+  // Dismiss alert function
+  const dismissAlert = () => {
+    setAlert({ ...alert, show: false });
+  };
+
+  // WebSocket event listeners
   useEffect(() => {
-    // Initial check
-    checkBookingTimeRestriction();
-    
-    // Set up interval to check every minute
-    const intervalId = setInterval(() => {
-      checkBookingTimeRestriction();
-    }, 60000); // Check every minute
-    
-    // Clean up interval on component unmount
-    return () => clearInterval(intervalId);
-  }, []);
+    socket.on("seatSelected", ({ seatId, timeSlot, day }) => {
+      setPendingSelections((prev) => {
+        const newPending = [...prev, { seatId, timeSlot, day }];
+        timeoutRefs.current[`${seatId}-${timeSlot}-${day}`] = setTimeout(() => {
+          setPendingSelections((current) =>
+            current.filter(
+              (p) => !(p.seatId === seatId && p.timeSlot === timeSlot && p.day === day)
+            )
+          );
+          delete timeoutRefs.current[`${seatId}-${timeSlot}-${day}`];
+        }, 10000); // 10 seconds
+        return newPending;
+      });
+    });
+
+    socket.on("seatBooked", ({ seatId, timeSlot, day }) => {
+      if (timeoutRefs.current[`${seatId}-${timeSlot}-${day}`]) {
+        clearTimeout(timeoutRefs.current[`${seatId}-${timeSlot}-${day}`]);
+        delete timeoutRefs.current[`${seatId}-${timeSlot}-${day}`];
+      }
+      setPendingSelections((prev) =>
+        prev.filter((p) => !(p.seatId === seatId && p.timeSlot === timeSlot && p.day === day))
+      );
+
+      if (viewMode === "time-first" && selectedTimeSlot?.startTime === timeSlot && selectedTimeSlot?.day === day) {
+        setBookedSeatsForTime((prev) => [...prev, { _id: seatId }]);
+      }
+      if (viewMode === "room-first" && selectedSeat?._id === seatId) {
+        setSeatBookings((prev) => [...prev, { startTime: new Date().setHours(timeSlot) }]);
+      }
+    });
+
+    socket.on("seatDeselected", ({ seatId, timeSlot, day }) => {
+      if (timeoutRefs.current[`${seatId}-${timeSlot}-${day}`]) {
+        clearTimeout(timeoutRefs.current[`${seatId}-${timeSlot}-${day}`]);
+        delete timeoutRefs.current[`${seatId}-${timeSlot}-${day}`];
+      }
+      setPendingSelections((prev) =>
+        prev.filter((p) => !(p.seatId === seatId && p.timeSlot === timeSlot && p.day === day))
+      );
+    });
+
+    return () => {
+      socket.off("seatSelected");
+      socket.off("seatBooked");
+      socket.off("seatDeselected");
+      Object.values(timeoutRefs.current).forEach(clearTimeout);
+    };
+  }, [viewMode, selectedTimeSlot, selectedSeat]);
 
   // Fetch all seats on component mount
   useEffect(() => {
     setLoading(true);
 
-    // Fetch all seats
     API.get("/seats/get-available-seats")
       .then((res) => {
         const seatsData = res.data.data;
         setSeats(seatsData);
 
-        // Extract unique rooms from the seats data
-        const uniqueRooms = [...new Set(seatsData.map(seat => seat.room))];
-
-        // Create room objects with floor information
-        const roomsWithFloors = uniqueRooms.map(roomName => {
-          const roomSeats = seatsData.filter(seat => seat.room === roomName);
+        const uniqueRooms = [...new Set(seatsData.map((seat) => seat.room))];
+        const roomsWithFloors = uniqueRooms.map((roomName) => {
+          const roomSeats = seatsData.filter((seat) => seat.room === roomName);
           const floor = roomSeats.length > 0 ? roomSeats[0].floor : 1;
           return { name: roomName, floor, seatType: roomSeats[0].seatType };
         });
 
-        // Sort rooms by floor and name
         roomsWithFloors.sort((a, b) => {
           if (a.floor !== b.floor) return a.floor - b.floor;
           return a.name.localeCompare(b.name);
@@ -90,40 +126,38 @@ const SeatBooking = () => {
 
         setRooms(roomsWithFloors);
 
-        // Fetch user's existing bookings
         return API.get("/seat-bookings/get-all-of-student-with-seat-details");
       })
       .then((res) => {
         const allBookings = res.data.data || [];
-
-        // Current date values
         const today = new Date();
         const tomorrow = new Date();
         tomorrow.setDate(today.getDate() + 1);
 
-        // Separate bookings by day
-        const todayBookings = allBookings.filter(booking => {
+        const todayBookings = allBookings.filter((booking) => {
           const bookingDate = new Date(booking.startTime);
-          return bookingDate.getDate() === today.getDate() &&
+          return (
+            bookingDate.getDate() === today.getDate() &&
             bookingDate.getMonth() === today.getMonth() &&
-            bookingDate.getFullYear() === today.getFullYear();
+            bookingDate.getFullYear() === today.getFullYear()
+          );
         });
 
-        const tomorrowBookings = allBookings.filter(booking => {
+        const tomorrowBookings = allBookings.filter((booking) => {
           const bookingDate = new Date(booking.startTime);
-          return bookingDate.getDate() === tomorrow.getDate() &&
+          return (
+            bookingDate.getDate() === tomorrow.getDate() &&
             bookingDate.getMonth() === tomorrow.getMonth() &&
-            bookingDate.getFullYear() === tomorrow.getFullYear();
+            bookingDate.getFullYear() === tomorrow.getFullYear()
+          );
         });
 
         setUserExistingBookings({
           today: todayBookings,
-          tomorrow: tomorrowBookings
+          tomorrow: tomorrowBookings,
         });
 
-        // Generate time slots
         generateTimeSlots();
-
         setLoading(false);
       })
       .catch((err) => {
@@ -132,16 +166,12 @@ const SeatBooking = () => {
       });
   }, []);
 
-  // Function to generate time slots for today and tomorrow
   const generateTimeSlots = () => {
-    // Get current time in IST
     const indianNow = new Date(
       new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
     );
-
     const currentHour = indianNow.getHours();
 
-    // Generate slots for today (from current hour until midnight)
     const todaySlots = [];
     for (let hour = currentHour; hour < 24; hour++) {
       todaySlots.push({
@@ -149,11 +179,10 @@ const SeatBooking = () => {
         day: "today",
         display: `${hour}:00 - ${hour + 1}:00`,
         isBooked: false,
-        startTime: hour // Just pass the hour as is
+        startTime: hour,
       });
     }
 
-    // Generate slots for tomorrow (from midnight until current hour)
     const tomorrowSlots = [];
     for (let hour = 0; hour < currentHour; hour++) {
       tomorrowSlots.push({
@@ -161,7 +190,7 @@ const SeatBooking = () => {
         day: "tomorrow",
         display: `${hour}:00 - ${hour + 1}:00`,
         isBooked: false,
-        startTime: hour // Just pass the hour as is
+        startTime: hour,
       });
     }
 
@@ -170,71 +199,54 @@ const SeatBooking = () => {
   };
 
   const organizeRoomSeats = (roomName) => {
-    const roomSeats = seats.filter(seat => seat.room === roomName);
-
-    // Find min and max coordinates
+    const roomSeats = seats.filter((seat) => seat.room === roomName);
     const minX = 0;
     const maxX = 20;
     const minY = 0;
     const maxY = 20;
 
-    // Normalize coordinates to a percentage-based layout
     const normalizeCoordinate = (coord, min, max) => {
       return ((coord - min) / (max - min)) * 100;
     };
 
-    // Group seats by type
-    const seatTypes = [...new Set(roomSeats.map(seat => seat.seatType))];
-
-    const sections = seatTypes.map(type => {
-      const typeSeats = roomSeats.filter(seat => seat.seatType === type);
-
-      // Map seats with their normalized coordinates
-      const mappedSeats = typeSeats.map(seat => ({
+    const seatTypes = [...new Set(roomSeats.map((seat) => seat.seatType))];
+    const sections = seatTypes.map((type) => {
+      const typeSeats = roomSeats.filter((seat) => seat.seatType === type);
+      const mappedSeats = typeSeats.map((seat) => ({
         ...seat,
         normalizedX: normalizeCoordinate(seat.coordinates.x, minX, maxX),
-        normalizedY: normalizeCoordinate(seat.coordinates.y, minY, maxY)
+        normalizedY: normalizeCoordinate(seat.coordinates.y, minY, maxY),
       }));
-
       return {
         name: type.charAt(0).toUpperCase() + type.slice(1),
-        seats: mappedSeats
+        seats: mappedSeats,
       };
     });
 
     return sections;
   };
 
-  // Handle room selection
   const handleSelectRoom = (room) => {
     setSelectedRoom(room);
     setSelectedSeat(null);
     setSelectedTimeSlots([]);
 
-    // If in time-first mode and we already have a time slot selected,
-    // fetch available seats for this room and time slot
     if (viewMode === "time-first" && selectedTimeSlot !== null) {
       fetchAvailableSeatsForRoomAndTime(room, selectedTimeSlot);
     }
   };
 
-  // Fetch available seats for a specific room and time slot
   const fetchAvailableSeatsForRoomAndTime = (room, timeSlotObj) => {
     setLoading(true);
-
-    API.get(`/seat-bookings/get-available-seats-by-slot?startTime=${timeSlotObj.startTime}&room=${room.name}&floor=${room.floor}&seatType=${room.seatType}`)
+    API.get(
+      `/seat-bookings/get-available-seats-by-slot?startTime=${timeSlotObj.startTime}&room=${room.name}&floor=${room.floor}&seatType=${room.seatType}`
+    )
       .then((res) => {
-        // This endpoint returns AVAILABLE seats
         const availableSeats = res.data.data;
-
-        // Get all seats for this room
-        const allRoomSeats = seats.filter(seat => seat.room === room.name);
-
-        // Determine which seats are booked by finding the ones NOT in the available seats list
-        const bookedSeats = allRoomSeats.filter(roomSeat =>
-          !availableSeats.some(availableSeat => availableSeat._id === roomSeat._id)
+        const allRoomSeats = seats.filter((seat) => seat.room === room.name);
+        const bookedSeats = allRoomSeats.filter((roomSeat) =>
+          !availableSeats.some((availableSeat) => availableSeat._id === roomSeat._id)
         );
-
         setBookedSeatsForTime(bookedSeats);
         setLoading(false);
       })
@@ -244,214 +256,217 @@ const SeatBooking = () => {
       });
   };
 
-  // When a seat is selected, fetch its bookings for today and tomorrow
   const handleSelectSeat = (seat) => {
     if (viewMode === "room-first") {
       setSelectedSeat(seat);
       setSelectedTimeSlots([]);
-
-      // Fetch bookings for the selected day
       API.get(`/seat-bookings/get-by-seat-id-for-today/${seat._id}`)
         .then((res) => {
           setSeatBookings(res.data.data);
         })
         .catch((err) => console.error("Error fetching seat bookings:", err));
     } else if (viewMode === "time-first") {
-      // In time-first mode, we're selecting seats after a time and room are chosen
-      // Check if the seat is already booked for the selected time
       const isBooked = bookedSeatsForTime.some(
-        bookedSeat => bookedSeat._id === seat._id
+        (bookedSeat) => bookedSeat._id === seat._id
       );
-
       if (!isBooked) {
+        if (selectedSeat && selectedSeat._id !== seat._id) {
+          socket.emit("seatDeselected", {
+            seatId: selectedSeat._id,
+            timeSlot: selectedTimeSlot.startTime,
+            day: selectedTimeSlot.day,
+          });
+        }
+
         setSelectedSeat(seat);
-        // In time-first mode, we already have a time slot selected
         setSelectedTimeSlots([selectedTimeSlot]);
+        socket.emit("seatSelected", {
+          seatId: seat._id,
+          timeSlot: selectedTimeSlot.startTime,
+          day: selectedTimeSlot.day,
+        });
       }
     }
   };
 
   const [timeSlots, setTimeSlots] = useState([]);
 
-useEffect(() => {
-  const fetchTimeSlots = async () => {
-    const slots = selectedDay === "today" ? todayTimeSlots : tomorrowTimeSlots;
+  useEffect(() => {
+    const fetchTimeSlots = async () => {
+      const slots = selectedDay === "today" ? todayTimeSlots : tomorrowTimeSlots;
 
-    if (viewMode === "room-first" && selectedSeat) {
-      let pausedSlots = [];
-      const room = selectedRoom.name;
-      await API.get(`/seat-bookings/get-pause-slots-by-room/?room=${room}`).then((res) => { 
-        pausedSlots = res.data.data;
-      });
-      const bookedSlots = seatBookings.map(booking => {
-        const bookingTime = new Date(booking.startTime);
-        return bookingTime.getHours();
-      });
+      if (viewMode === "room-first" && selectedSeat) {
+        let pausedSlots = [];
+        const room = selectedRoom.name;
+        await API.get(`/seat-bookings/get-pause-slots-by-room/?room=${room}`).then((res) => {
+          pausedSlots = res.data.data;
+        });
+        const bookedSlots = seatBookings.map((booking) => {
+          const bookingTime = new Date(booking.startTime);
+          return bookingTime.getHours();
+        });
 
-      const userBookedSlots = userExistingBookings[selectedDay].map(booking => {
-        const bookingTime = new Date(booking.startTime);
-        return bookingTime.getHours();
-      });
+        const userBookedSlots = userExistingBookings[selectedDay].map((booking) => {
+          const bookingTime = new Date(booking.startTime);
+          return bookingTime.getHours();
+        });
 
-      setTimeSlots( slots.map(slot => ({
-        ...slot,
-        isBooked: bookedSlots.includes(slot.hour) || pausedSlots.includes(slot.hour),
-        isUserBooked: userBookedSlots.includes(slot.hour)
-      })));
-    } else {
-      const userBookedSlots = userExistingBookings[selectedDay].map(booking => {
-        const bookingTime = new Date(booking.startTime);
-        return bookingTime.getHours();
-      });
-
-      setTimeSlots( slots.map(slot => ({
-        ...slot,
-        isBooked: userBookedSlots.includes(slot.hour),
-        isUserBooked: userBookedSlots.includes(slot.hour)
-      })));
-    }
-  };
-  
-  fetchTimeSlots();
-}, [selectedDay, viewMode, selectedSeat, selectedRoom, seatBookings, userExistingBookings]);
-
-
-  // Handle time slot selection
-  const handleTimeSlotSelection = (slot) => {
-    // Check if booking is currently disabled (11:55 PM - midnight)
-    if (isBookingDisabled) {
-      alert("Bookings are not available between 11:55 PM and midnight. Please try again after midnight.");
-      return;
-    }
-    
-    if (viewMode === "room-first") {
-      // In room-first mode, we can select multiple time slots
-      if (selectedTimeSlots.some(ts => ts.startTime === slot.startTime && ts.day === slot.day)) {
-        // If already selected, remove it
-        setSelectedTimeSlots(selectedTimeSlots.filter(ts =>
-          !(ts.startTime === slot.startTime && ts.day === slot.day)
-        ));
+        setTimeSlots(
+          slots.map((slot) => ({
+            ...slot,
+            isBooked: bookedSlots.includes(slot.hour) || pausedSlots.includes(slot.hour),
+            isUserBooked: userBookedSlots.includes(slot.hour),
+          }))
+        );
       } else {
-        // If not booked, check if adding this slot would exceed 5 hours for the selected day
-        if (!slot.isBooked) {
-          // Get existing bookings for the selected day
-          const existingBookingHours = userExistingBookings[slot.day].length;
+        const userBookedSlots = userExistingBookings[selectedDay].map((booking) => {
+          const bookingTime = new Date(booking.startTime);
+          return bookingTime.getHours();
+        });
 
-          // Count selected slots for the same day
-          const selectedSlotsForSameDay = selectedTimeSlots.filter(ts => ts.day === slot.day).length;
+        setTimeSlots(
+          slots.map((slot) => ({
+            ...slot,
+            isBooked: userBookedSlots.includes(slot.hour),
+            isUserBooked: userBookedSlots.includes(slot.hour),
+          }))
+        );
+      }
+    };
 
-          // If adding this slot would exceed 5 hours, show an alert
-          if (existingBookingHours + selectedSlotsForSameDay + 1 > 5) {
-            alert(`You can only book a maximum of 5 hours per day for ${slot.day}.`);
-            return;
-          }
+    fetchTimeSlots();
+  }, [selectedDay, viewMode, selectedSeat, selectedRoom, seatBookings, userExistingBookings]);
 
-          // Otherwise, add the slot
-          setSelectedTimeSlots([...selectedTimeSlots, slot]);
+  const handleTimeSlotSelection = (slot) => {
+
+    if (viewMode === "room-first") {
+      const isSelected = selectedTimeSlots.some(
+        (ts) => ts.startTime === slot.startTime && ts.day === slot.day
+      );
+      if (isSelected) {
+        setSelectedTimeSlots(
+          selectedTimeSlots.filter(
+            (ts) => !(ts.startTime === slot.startTime && ts.day === slot.day)
+          )
+        );
+        if (selectedSeat) {
+          socket.emit("seatDeselected", {
+            seatId: selectedSeat._id,
+            timeSlot: slot.startTime,
+            day: slot.day,
+          });
+        }
+      } else if (!slot.isBooked) {
+        const existingBookingHours = userExistingBookings[slot.day].length;
+        const selectedSlotsForSameDay = selectedTimeSlots.filter((ts) => ts.day === slot.day).length;
+
+        if (existingBookingHours + selectedSlotsForSameDay + 1 > maxBookingHours) {
+          showAlert(`You can only book a maximum of ${maxBookingHours} hours for ${slot.day}.`);
+          return;
+        }
+
+        const newSelectedTimeSlots = [...selectedTimeSlots, slot];
+        setSelectedTimeSlots(newSelectedTimeSlots);
+
+        if (selectedSeat) {
+          newSelectedTimeSlots.forEach((ts) => {
+            socket.emit("seatSelected", {
+              seatId: selectedSeat._id,
+              timeSlot: ts.startTime,
+              day: ts.day,
+            });
+          });
         }
       }
     } else if (viewMode === "time-first") {
-      // In time-first mode, we only select one time slot
-      // Check if selecting this slot would exceed the limit for the selected day
       const existingBookingHours = userExistingBookings[slot.day].length;
-
-      if (existingBookingHours + 1 > 5) {
-        alert(`You have already booked the maximum of 5 hours for ${slot.day}.`);
+      if (existingBookingHours + 1 > maxBookingHours) {
+        showAlert(`You have already booked the maximum of ${maxBookingHours} hours for ${slot.day}.`);
         return;
       }
 
       setSelectedTimeSlot(slot);
       setSelectedSeat(null);
-
-      // Reset room selection but don't fetch available seats yet
-      // We'll fetch after a room is selected
       setSelectedRoom(null);
       setBookedSeatsForTime([]);
     }
   };
 
-  // Switch between view modes
   const toggleViewMode = () => {
-    // Reset selections when switching modes
     setSelectedRoom(null);
     setSelectedSeat(null);
     setSelectedTimeSlots([]);
     setSelectedTimeSlot(null);
     setBookedSeatsForTime([]);
     setSeatBookings([]);
-
     setViewMode(viewMode === "room-first" ? "time-first" : "room-first");
   };
 
-  // Switch between today and tomorrow
   const handleDayChange = (day) => {
     setSelectedDay(day);
     setSelectedTimeSlots([]);
   };
 
-  // Submit booking for the selected seat and time slots
   const handleBookingSubmission = async () => {
-    // Check if booking is currently disabled (11:55 PM - midnight)
-    if (isBookingDisabled) {
-      alert("Bookings are not available between 11:55 PM and midnight. Please try again after midnight.");
-      return;
-    }
-    
+
     if (viewMode === "room-first" && (!selectedTimeSlots.length || !selectedSeat)) {
-      alert("Please select a seat and at least one time slot.");
+      showAlert("Please select a seat and at least one time slot.");
       return;
     }
 
     if (viewMode === "time-first" && (!selectedTimeSlot || !selectedSeat)) {
-      alert("Please select a time slot and a seat.");
+      showAlert("Please select a time slot and a seat.");
       return;
     }
 
     const timeSlots = viewMode === "room-first" ? selectedTimeSlots : [selectedTimeSlot];
 
-    // Group time slots by day for limit checking
-    const todaySlots = timeSlots.filter(slot => slot.day === "today");
-    const tomorrowSlots = timeSlots.filter(slot => slot.day === "tomorrow");
+    const todaySlots = timeSlots.filter((slot) => slot.day === "today");
+    const tomorrowSlots = timeSlots.filter((slot) => slot.day === "tomorrow");
 
-    // Check limits for each day
-    if (todaySlots.length > 0 && (userExistingBookings.today.length + todaySlots.length > 5)) {
-      alert("This booking would exceed your daily limit of 5 hours for today.");
+    if (todaySlots.length > 0 && userExistingBookings.today.length + todaySlots.length > maxBookingHours) {
+      showAlert(`This booking would exceed your daily limit of ${maxBookingHours} hours for today.`);
       return;
     }
 
-    if (tomorrowSlots.length > 0 && (userExistingBookings.tomorrow.length + tomorrowSlots.length > 5)) {
-      alert("This booking would exceed your daily limit of 5 hours for tomorrow.");
+    if (
+      tomorrowSlots.length > 0 &&
+      userExistingBookings.tomorrow.length + tomorrowSlots.length > maxBookingHours
+    ) {
+      showAlert(`This booking would exceed your daily limit of ${maxBookingHours} hours for tomorrow.`);
       return;
     }
 
     try {
-      // Create a booking for each selected time slot
       const bookingResponses = [];
       for (const slot of timeSlots) {
         const response = await API.post("/seat-bookings/book-seat", {
           seatId: selectedSeat._id,
-          startTime: slot.startTime // Just send the hour, backend will handle the date
+          startTime: slot.startTime,
         });
         bookingResponses.push(response);
+
+        socket.emit("seatBooked", {
+          seatId: selectedSeat._id,
+          timeSlot: slot.startTime,
+          day: slot.day,
+        });
       }
 
-      const slotText = timeSlots.length > 1
-        ? `slots ${timeSlots.map(slot => `${slot.day} ${slot.display}`).join(", ")}`
-        : `slot ${timeSlots[0].day} ${timeSlots[0].display}`;
+      const slotText =
+        timeSlots.length > 1
+          ? `slots ${timeSlots.map((slot) => `${slot.day} ${slot.display}`).join(", ")}`
+          : `slot ${timeSlots[0].day} ${timeSlots[0].display}`;
 
-      alert(`Seat ${selectedSeat.seatNumber} booked for ${slotText}`);
+      showAlert(`Seat ${selectedSeat.seatNumber} booked for ${slotText}`, "success");
 
-      // Update userExistingBookings with the new bookings
-      const newBookings = bookingResponses.map(res => res.data.data);
-
-      // Separate new bookings by day
-      const newTodayBookings = newBookings.filter(booking => {
+      const newBookings = bookingResponses.map((res) => res.data.data);
+      const newTodayBookings = newBookings.filter((booking) => {
         const bookingDate = new Date(booking.startTime);
         const today = new Date();
         return bookingDate.getDate() === today.getDate();
       });
-
-      const newTomorrowBookings = newBookings.filter(booking => {
+      const newTomorrowBookings = newBookings.filter((booking) => {
         const bookingDate = new Date(booking.startTime);
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
@@ -460,64 +475,73 @@ useEffect(() => {
 
       setUserExistingBookings({
         today: [...userExistingBookings.today, ...newTodayBookings],
-        tomorrow: [...userExistingBookings.tomorrow, ...newTomorrowBookings]
+        tomorrow: [...userExistingBookings.tomorrow, ...newTomorrowBookings],
       });
 
-      // Reset selections
       if (viewMode === "room-first") {
-        // Refresh bookings for the seat after a successful booking
         const res = await API.get(`/seat-bookings/get-by-seat-id-for-today/${selectedSeat._id}`);
         setSeatBookings(res.data.data);
         setSelectedTimeSlots([]);
       } else {
-        // In time-first mode, refresh available seats for the selected time and room
         fetchAvailableSeatsForRoomAndTime(selectedRoom, selectedTimeSlot);
         setSelectedSeat(null);
       }
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to book seat!");
+      showAlert(err.response?.data?.message || "Failed to book seat!");
     }
   };
 
   const handleCancelSelection = () => {
     if (viewMode === "room-first") {
+      if (selectedSeat && selectedTimeSlots.length > 0) {
+        selectedTimeSlots.forEach((slot) => {
+          socket.emit("seatDeselected", {
+            seatId: selectedSeat._id,
+            timeSlot: slot.startTime,
+            day: slot.day,
+          });
+        });
+      }
       setSelectedSeat(null);
       setSelectedTimeSlots([]);
     } else {
+      if (selectedSeat && selectedTimeSlot) {
+        socket.emit("seatDeselected", {
+          seatId: selectedSeat._id,
+          timeSlot: selectedTimeSlot.startTime,
+          day: selectedTimeSlot.day,
+        });
+      }
       setSelectedSeat(null);
     }
   };
 
-  // Render method update for dynamic gate positioning
   const renderTheaterLayout = () => {
     if (!selectedRoom) return null;
 
     const sections = organizeRoomSeats(selectedRoom.name);
-
-    // Calculate overall min and max Y for gate positioning
-    const minY = Math.min(...sections.map(section => Math.min(...section.seats.map(seat => seat.normalizedY))));
-    const maxY = Math.max(...sections.map(section => Math.max(...section.seats.map(seat => seat.normalizedY))));
+    const minY = Math.min(...sections.map((section) => Math.min(...section.seats.map((seat) => seat.normalizedY))));
+    const maxY = Math.max(...sections.map((section) => Math.max(...section.seats.map((seat) => seat.normalizedY))));
 
     return (
       <div
         className="theater-layout"
         style={{
-          position: 'relative',
-          width: '100%',
-          height: '700px',
-          border: '1px solid #ccc',
-          backgroundColor: '#f0f0f0',
-          overflow: 'hidden'
+          position: "relative",
+          width: "100%",
+          height: "700px",
+          border: "1px solid #ccc",
+          backgroundColor: "#f0f0f0",
+          overflow: "hidden",
         }}
       >
-        {/* Room Label */}
         <div
           style={{
-            position: 'absolute',
-            top: '10px',
-            left: '10px',
-            fontWeight: 'bold',
-            zIndex: 10
+            position: "absolute",
+            top: "10px",
+            left: "10px",
+            fontWeight: "bold",
+            zIndex: 10,
           }}
         >
           {selectedRoom.name} - Floor {selectedRoom.floor}
@@ -528,84 +552,114 @@ useEffect(() => {
             key={sectionIdx}
             className="section-container"
             style={{
-              position: 'relative',
-              marginTop: '100px',
-              width: '90%',
-              height: '90%'
+              position: "relative",
+              marginTop: "100px",
+              width: "90%",
+              height: "90%",
             }}
           >
-            {/* Top Left Gate - Dynamically Positioned */}
             <div
               style={{
-                position: 'absolute',
-                bottom: `${maxY}%`, // Dynamically positioned based on first seat
-                marginTop: '100px',
-                left: '40px',
-                width: '60px',
-                height: '20px',
-                backgroundColor: '#4a4a4a',
-                borderRadius: '0 0 10px 10px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'white',
-                fontSize: '10px',
-                transform: 'rotate(90deg)',
-                transformOrigin: 'top left',
+                position: "absolute",
+                bottom: `${maxY}%`,
+                marginTop: "100px",
+                left: "40px",
+                width: "60px",
+                height: "20px",
+                backgroundColor: "#4a4a4a",
+                borderRadius: "0 0 10px 10px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "white",
+                fontSize: "10px",
+                transform: "rotate(90deg)",
+                transformOrigin: "top left",
                 zIndex: 15,
-                marginLeft: '-5%'
+                marginLeft: "-5%",
               }}
             >
               Gate A
             </div>
-            {/* Bottom Left Gate - Dynamically Positioned */}
             <div
               style={{
-                position: 'absolute',
-                bottom: `${minY}%`, // Dynamically positioned based on last seat
-                left: '40px',
-                width: '60px',
-                height: '20px',
-                backgroundColor: '#4a4a4a',
-                borderRadius: '0 0 10px 10px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'white',
-                fontSize: '10px',
-                transform: 'rotate(90deg)',
-                transformOrigin: 'top left',
+                position: "absolute",
+                bottom: `${minY}%`,
+                left: "40px",
+                width: "60px",
+                height: "20px",
+                backgroundColor: "#4a4a4a",
+                borderRadius: "0 0 10px 10px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "white",
+                fontSize: "10px",
+                transform: "rotate(90deg)",
+                transformOrigin: "top left",
                 zIndex: 15,
-                marginLeft: '-5%'
+                marginLeft: "-5%",
               }}
             >
               Gate B
             </div>
             {section.seats.map((seat, seatIdx) => {
-              const isBooked = viewMode === "time-first"
-                ? bookedSeatsForTime.some(bookedSeat => bookedSeat._id === seat._id)
-                : false;
+              const isBooked =
+                viewMode === "time-first"
+                  ? bookedSeatsForTime.some((bookedSeat) => bookedSeat._id === seat._id)
+                  : false;
+              const isPending = pendingSelections.some(
+                (p) =>
+                  p.seatId === seat._id &&
+                  (viewMode === "time-first"
+                    ? p.timeSlot === selectedTimeSlot?.startTime && p.day === selectedTimeSlot?.day
+                    : selectedTimeSlots.some(
+                      (ts) => ts.startTime === p.timeSlot && ts.day === p.day
+                    ))
+              );
+              const isClickable = !isBooked && !isPending;
+
               return (
                 <div
                   key={seatIdx}
-                  className={`absolute-seat ${isBooked ? 'booked' : 'available'} ${selectedSeat && selectedSeat._id === seat._id ? 'selected' : ''}`}
-                  style={{
-                    position: 'absolute',
-                    left: `${seat.normalizedX}%`,
-                    bottom: `${seat.normalizedY}%`, // Use bottom to shift origin
-                    transform: 'translate(-50%, 50%)', // Adjust transform
-                    width: '25px',
-                    height: '25px',
-                    borderRadius: '5px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    fontSize: '12px',
-                    boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
-                    zIndex: 5
-                  }}
-                  onClick={() => !isBooked && handleSelectSeat(seat)}
+                  className={`absolute-seat ${isBooked ? "booked" : isPending ? "pending" : "available"
+                    } ${selectedSeat && selectedSeat._id === seat._id ? "selected" : ""}`}
+                  style={
+                    isBooked || isPending
+                      ? {
+                        position: "absolute",
+                        left: `${seat.normalizedX}%`,
+                        bottom: `${seat.normalizedY}%`,
+                        transform: "translate(-50%, 50%)",
+                        width: "25px",
+                        height: "25px",
+                        borderRadius: "5px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        cursor: "not-allowed",
+                        fontSize: "12px",
+                        boxShadow: "0 2px 5px rgba(0,0,0,0.2)",
+                        zIndex: 5,
+                      }
+                      : {
+                        position: "absolute",
+                        left: `${seat.normalizedX}%`,
+                        bottom: `${seat.normalizedY}%`,
+                        transform: "translate(-50%, 50%)",
+                        width: "25px",
+                        height: "25px",
+                        borderRadius: "5px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        cursor: "pointer",
+                        fontSize: "12px",
+                        boxShadow: "0 2px 5px rgba(0,0,0,0.2)",
+                        zIndex: 5,
+                      }
+                  }
+                  onClick={isClickable ? () => handleSelectSeat(seat) : undefined}
                 >
                   {seat.seatNumber}
                 </div>
@@ -618,37 +672,33 @@ useEffect(() => {
   };
 
   return (
-    <div className="app-container">
-      {/* Sidebar component */}
+    <div className="dashboard-container">
       <Sidebar
         isCollapsed={isSidebarCollapsed}
         toggleSidebar={toggleSidebar}
         activeItem="seat-booking"
       />
 
-      {/* Main content */}
       <div className="main-content">
-        <div className="seat-booking-container">
-          <div className="header">
-            <h2 className="heading_color">💺 Book a Seat</h2>
-            <ProfileButton />
-          </div>
 
-          {isBookingDisabled && (
-            <div className="booking-restriction-warning" style={{
-              backgroundColor: "#ffebee",
-              color: "#c62828",
-              padding: "10px 15px",
-              borderRadius: "4px",
-              marginBottom: "15px",
-              fontWeight: "bold",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center"
-            }}>
-              ⚠️ Bookings are temporarily unavailable between 11:55 PM and midnight. Please try again after midnight.
+        <div className="dashboard-header">
+            
+            <div className="heading_color">💺 Book a Seat</div>
+            <div className="header-right"> 
+            <div> <a href="https://www.iitrpr.ac.in/library/floor_plan.php" class="button-library-floor-plan" target="_blank">Library Floor Plan</a> </div>
+            <ProfileButton />
             </div>
-          )}
+          </div>
+        <div className="seat-booking-container">
+          
+
+          <Alert
+            message={alert.message}
+            type={alert.type}
+            show={alert.show}
+            onDismiss={dismissAlert}
+            autoDismissTime={5000}
+          />
 
           <div className="view-mode-toggle">
             <button
@@ -667,10 +717,10 @@ useEffect(() => {
 
           <div className="booking-limit-info">
             <p>
-              Daily booking limit: {userExistingBookings[selectedDay].length} of 5 hours used for {selectedDay}
-              {viewMode === "room-first" && selectedTimeSlots.length > 0 ?
-                ` (${selectedTimeSlots.filter(slot => slot.day === selectedDay).length} additional hours selected)` :
-                ""}
+              Daily booking limit: {userExistingBookings[selectedDay].length} of {maxBookingHours} hours used for {selectedDay}
+              {viewMode === "room-first" && selectedTimeSlots.length > 0
+                ? ` (${selectedTimeSlots.filter((slot) => slot.day === selectedDay).length} additional hours selected)`
+                : ""}
             </p>
           </div>
 
@@ -682,10 +732,8 @@ useEffect(() => {
           ) : (
             <>
               {viewMode === "room-first" ? (
-                // Room-first view mode
                 <div className="booking-container">
                   {!selectedRoom ? (
-                    // Step 1: Room selection
                     <div className="rooms-container">
                       <h3>Select a Room:</h3>
                       <div className="rooms-grid">
@@ -702,10 +750,11 @@ useEffect(() => {
                       </div>
                     </div>
                   ) : !selectedSeat ? (
-                    // Step 2: Seat selection within the room
                     <div className="theater-container">
                       <div className="selected-room">
-                        <h3>Room: {selectedRoom.name} (Floor {selectedRoom.floor})</h3>
+                        <h3>
+                          Room: {selectedRoom.name} (Floor {selectedRoom.floor})
+                        </h3>
                         <button className="back-btn" onClick={() => setSelectedRoom(null)}>
                           ← Back to Rooms
                         </button>
@@ -717,19 +766,23 @@ useEffect(() => {
                           <span>Available</span>
                         </div>
                         <div className="legend-item">
+                          <div className="legend-box pending"></div>
+                          <span>Pending (Selected by someone)</span>
+                        </div>
+                        <div className="legend-item">
                           <div className="legend-box selected"></div>
-                          <span>Selected</span>
+                          <span>Your Selection</span>
                         </div>
                       </div>
 
                       {renderTheaterLayout()}
                     </div>
                   ) : (
-                    // Step 3: Time slot selection for selected seat
-                    // Render time slot selection as before
                     <div className="time-slot-container">
                       <div className="selected-seat-info">
-                        <h3>Selected Seat: {selectedSeat.seatNumber} ({selectedSeat.seatType}) in {selectedRoom.name}</h3>
+                        <h3>
+                          Selected Seat: {selectedSeat.seatNumber} ({selectedSeat.seatType}) in {selectedRoom.name}
+                        </h3>
                         <button className="back-btn" onClick={() => setSelectedSeat(null)}>
                           ← Back to Seats
                         </button>
@@ -752,26 +805,48 @@ useEffect(() => {
 
                       <div className="time-slot-selection">
                         <h3>Select Time Slot(s) for {selectedDay.charAt(0).toUpperCase() + selectedDay.slice(1)}:</h3>
-                        <p className="note">You can select multiple time slots (max 5 hours per day including existing bookings)</p>
+                        <p className="note">
+                          You can select multiple time slots (max {maxBookingHours} hours per day including existing bookings)
+                        </p>
 
                         <div className="time-slots-grid">
-                          {timeSlots.map((slot, idx) => (
-                            <div
-                              key={idx}
-                              className={`time-slot ${(slot.isBooked || slot.isUserBooked) ? 'booked' : 'available'} ${selectedTimeSlots.some(ts => ts.startTime === slot.startTime && ts.day === slot.day) ? 'selected' : ''}`}
-                              onClick={() => !slot.isBooked && handleTimeSlotSelection(slot)}
-                            >
-                              {slot.display}
-                              {slot.isUserBooked && <span> (Your booking)</span>}
-                            </div>
-                          ))}
+                          {timeSlots.map((slot, idx) => {
+                            const isPending = pendingSelections.some(
+                              (p) =>
+                                p.seatId === selectedSeat._id &&
+                                p.timeSlot === slot.startTime &&
+                                p.day === slot.day
+                            );
+                            const isClickable = !slot.isBooked && !slot.isUserBooked && !isPending;
+
+                            return (
+                              <div
+                                key={idx}
+                                className={`time-slot ${slot.isBooked || slot.isUserBooked
+                                    ? "booked"
+                                    : isPending
+                                      ? "pending"
+                                      : "available"
+                                  } ${selectedTimeSlots.some(
+                                    (ts) => ts.startTime === slot.startTime && ts.day === slot.day
+                                  )
+                                    ? "selected"
+                                    : ""
+                                  }`}
+                                onClick={isClickable ? () => handleTimeSlotSelection(slot) : undefined}
+                              >
+                                {slot.display}
+                                {slot.isUserBooked && <span> (Your booking)</span>}
+                              </div>
+                            );
+                          })}
                         </div>
 
                         <div className="booking-actions">
                           <button
                             className="book-btn"
                             onClick={handleBookingSubmission}
-                            disabled={selectedTimeSlots.length === 0 || isBookingDisabled}
+                            disabled={selectedTimeSlots.length === 0}
                           >
                             Book Selected Slots
                           </button>
@@ -784,12 +859,8 @@ useEffect(() => {
                   )}
                 </div>
               ) : (
-                // Time-first view mode
-                // Render time-first view mode as before - no changes
                 <div className="booking-container">
-                  {/* Existing time-first view mode rendering */}
                   {!selectedTimeSlot ? (
-                    // Step 1: Time slot selection
                     <div className="time-slot-container">
                       <div className="day-selector">
                         <button
@@ -807,28 +878,27 @@ useEffect(() => {
                       </div>
 
                       <h3>Select a Time Slot for {selectedDay.charAt(0).toUpperCase() + selectedDay.slice(1)}:</h3>
-                      <p className="note">You can book up to 5 hours per day</p>
+                      <p className="note">You can book up to {maxBookingHours} hours per day</p>
 
                       <div className="time-slots-grid">
-                        {timeSlots.map((slot, idx) => {
-                          return (
-                            <div
-                              key={idx}
-                              className={`time-slot ${(slot.isBooked || slot.isUserBooked) ? 'booked' : 'available'}`}
-                              onClick={() => !slot.isBooked && handleTimeSlotSelection(slot)}
-                            >
-                              {slot.display}
-                              {slot.isUserBooked && <span> (Your booking)</span>}
-                            </div>
-                          );
-                        })}
+                        {timeSlots.map((slot, idx) => (
+                          <div
+                            key={idx}
+                            className={`time-slot ${(slot.isBooked || slot.isUserBooked) ? "booked" : "available"}`}
+                            onClick={() => !slot.isBooked && handleTimeSlotSelection(slot)}
+                          >
+                            {slot.display}
+                            {slot.isUserBooked && <span> (Your booking)</span>}
+                          </div>
+                        ))}
                       </div>
                     </div>
                   ) : !selectedRoom ? (
-                    // Step 2: Room selection after time selection
                     <div className="rooms-container">
                       <div className="selected-time-info">
-                        <h3>Selected Time: {selectedTimeSlot.day.charAt(0).toUpperCase() + selectedTimeSlot.day.slice(1)}, {selectedTimeSlot.display}</h3>
+                        <h3>
+                          Selected Time: {selectedTimeSlot.day.charAt(0).toUpperCase() + selectedTimeSlot.day.slice(1)}, {selectedTimeSlot.display}
+                        </h3>
                         <button className="back-btn" onClick={() => setSelectedTimeSlot(null)}>
                           ← Back to Time Slots
                         </button>
@@ -849,15 +919,15 @@ useEffect(() => {
                       </div>
                     </div>
                   ) : (
-                    // Step 3: Seat selection after both time and room are selected
                     <div className="theater-container">
                       <div className="selected-room-time-info">
-                        <h3>Selected Time: {selectedTimeSlot.day.charAt(0).toUpperCase() + selectedTimeSlot.day.slice(1)}, {selectedTimeSlot.display} | Room: {selectedRoom.name} (Floor {selectedRoom.floor})</h3>
+                        <h3>
+                          Selected Time: {selectedTimeSlot.day.charAt(0).toUpperCase() + selectedTimeSlot.day.slice(1)}, {selectedTimeSlot.display} | Room: {selectedRoom.name} (Floor {selectedRoom.floor})
+                        </h3>
                         <div className="back-buttons">
                           <button className="back-btn" onClick={() => setSelectedRoom(null)}>
                             ← Back to Rooms
                           </button>
-
                         </div>
                       </div>
 
@@ -871,21 +941,20 @@ useEffect(() => {
                           <span>Booked</span>
                         </div>
                         <div className="legend-item">
+                          <div className="legend-box pending"></div>
+                          <span>Pending (Selected by someone)</span>
+                        </div>
+                        <div className="legend-item">
                           <div className="legend-box selected"></div>
-                          <span>Selected</span>
+                          <span>Your Selection</span>
                         </div>
                       </div>
 
-                      <div >
-                        {renderTheaterLayout()}
-                      </div>
+                      <div>{renderTheaterLayout()}</div>
 
                       {selectedSeat && (
                         <div className="booking-actions">
-                          <button
-                            className="book-btn"
-                            onClick={handleBookingSubmission}
-                          >
+                          <button className="book-btn" onClick={handleBookingSubmission}>
                             Book Seat {selectedSeat.seatNumber} for {selectedTimeSlot.day.charAt(0).toUpperCase() + selectedTimeSlot.day.slice(1)}, {selectedTimeSlot.display}
                           </button>
                           <button className="cancel-btn" onClick={handleCancelSelection}>
