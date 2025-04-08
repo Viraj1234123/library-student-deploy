@@ -168,7 +168,7 @@ const SeatBooking = () => {
 
   const generateTimeSlots = () => {
     const indianNow = new Date(
-      new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
+      new Date().toLocaleString()
     );
     const currentHour = indianNow.getHours();
 

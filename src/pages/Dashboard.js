@@ -355,6 +355,7 @@ const Dashboard = () => {
                                     >
                                         <option value="">Select Department</option>
                                         <option value="Computer Science">Computer Science</option>
+                                        <option value="Artificial Intelligence">Artificial Intelligence</option>
                                         <option value="Electrical Engineering">Electrical Engineering</option>
                                         <option value="Mechanical Engineering">Mechanical Engineering</option>
                                         <option value="Civil Engineering">Civil Engineering</option>
