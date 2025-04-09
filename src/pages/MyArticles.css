@@ -329,3 +329,11 @@ article
   overflow: hidden; /* Ensures rounded corners and full-width header */
   transition: all 0.3s ease;
 }
+
+@media (max-width: 768px) {
+
+  .main-content {
+    width: 90vw;
+  }
+
+}

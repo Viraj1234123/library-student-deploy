@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
-import BookIssueRating from "./pages/BookIssueRating";  // ✅ Combined Page
+import BookIssueRating from "./pages/BookIssueRating";
 import SeatBooking from "./pages/SeatBooking";
 import Profile from "./pages/Profile";
 import Complaint from "./pages/Complaints"

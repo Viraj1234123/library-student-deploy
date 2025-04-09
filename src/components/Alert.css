@@ -89,6 +89,7 @@
     background: linear-gradient(135deg, #eaa0a0 0%, #eb4646 100%); /* Gradient for depth */
     color: #991b1b; /* Slightly darker red */
     border-left: 5px solid #ef4444; /* Thicker border */
+    z-index: 10000;
 }
 
 .alert-warning {

@@ -725,3 +725,604 @@
     font-weight: bold;
   }
   
+  /* Enhanced Profile Completion Overlay */
+.profile-completion-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    padding: 20px;
+    
+}
+
+/* Enhanced Profile Completion Form */
+.profile-completion-form {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    width: 450px;
+    margin-top: -1vh;
+    max-width: 550px;
+    padding: 30px;
+    position: relative;
+    max-height: 80vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    animation: fadeInForm 0.4s ease-out;
+    scrollbar-width: thin;
+    scrollbar-color: #d1d5db transparent;
+}
+
+.profile-completion-form::-webkit-scrollbar {
+    width: 6px;
+}
+
+.profile-completion-form::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.profile-completion-form::-webkit-scrollbar-thumb {
+    background-color: #d1d5db;
+    border-radius: 10px;
+}
+
+@keyframes fadeInForm {
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.profile-completion-form h3 {
+    font-size: 24px;
+    margin-bottom: 25px;
+    color: #111827;
+    text-align: center;
+    font-weight: 600;
+    position: relative;
+    padding-bottom: 15px;
+}
+
+.profile-completion-form h3::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    border-radius: 3px;
+}
+
+/* Form Fields */
+.form-field {
+    margin-bottom: 22px;
+}
+
+.form-field label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #4b5563;
+    font-size: 15px;
+}
+
+.form-field input,
+.form-field select {
+    width: 100%;
+    padding: 14px 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    font-size: 15px;
+    transition: all 0.3s;
+    background-color: #f9fafb;
+    color: #1f2937;
+}
+
+.form-field input:focus,
+.form-field select:focus {
+    border-color: #3b82f6;
+    outline: none;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.form-field input::placeholder {
+    color: #9ca3af;
+}
+
+.form-field select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%236b7280' viewBox='0 0 16 16'%3E%3Cpath d='M8 10.5a.5.5 0 0 1-.354-.146l-4-4a.5.5 0 0 1 .708-.708L8 9.293l3.646-3.647a.5.5 0 0 1 .708.708l-4 4A.5.5 0 0 1 8 10.5z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 16px;
+    padding-right: 42px;
+}
+
+/* Form Actions */
+.form-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 30px;
+    gap: 16px;
+}
+
+.save-profile-btn,
+.skip-btn {
+    padding: 14px 24px;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+}
+
+.save-profile-btn {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    color: white;
+    border: none;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.save-profile-btn:hover {
+    background: linear-gradient(135deg, #2563eb, #1e40af);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(59, 130, 246, 0.4);
+}
+
+.save-profile-btn:active {
+    transform: translateY(0);
+}
+
+.skip-btn {
+    background-color: #f3f4f6;
+    color: #4b5563;
+    border: 1px solid #e5e7eb;
+}
+
+.skip-btn:hover {
+    background-color: #e5e7eb;
+    color: #374151;
+}
+
+/* Error Message */
+.error-message {
+    color: #ef4444;
+    font-size: 14px;
+    margin-top: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.error-icon {
+    font-size: 16px;
+}
+
+/* Required Field Indicator */
+.required-field::after {
+    content: '*';
+    color: #ef4444;
+    margin-left: 4px;
+}
+
+/* Form Field Groups - for responsive layout */
+.form-field-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+/* Media query for small screens */
+@media (max-width: 640px) {
+    .form-field-group {
+        grid-template-columns: 1fr;
+    }
+    
+    .profile-completion-form {
+        padding: 25px 20px;
+        max-height: 80vh;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .save-profile-btn,
+    .skip-btn {
+        width: 100%;
+    }
+}
+
+.form-field {
+    margin-bottom: 22px;
+    width: 100%; /* Ensure the parent container has a consistent width */
+}
+
+.form-field input,
+.form-field select {
+    width: 100%; /* Already present, ensures full width of parent */
+    box-sizing: border-box; /* Include padding and border in width calculation */
+    padding: 14px 10px; /* Consistent padding */
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    font-size: 15px;
+    transition: all 0.3s;
+    background-color: #f9fafb;
+    color: #1f2937;
+}
+
+/* Existing styles remain, adding/updating these: */
+
+.dashboard-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background: #f8f9fa;
+    font-family: 'Poppins', 'Segoe UI', sans-serif;
+    position: relative;
+}
+
+.mobile-header {
+    display: none; /* Hidden by default on desktop */
+    padding: 15px;
+    background: #ffffff;
+    border-bottom: 1px solid #e5e7eb;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1001;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.toggle-btn {
+    background: #f3f4f6;
+    color: #4b5563;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.toggle-btn:hover {
+    background: #e5e7eb;
+}
+
+.hamburger-icon {
+    font-size: 24px;
+}
+
+.main-content {
+    flex-grow: 1;
+    padding: 20px;
+    overflow-y: auto;
+    transition: filter 0.3s ease;
+    margin-top: 70px; /* Space for mobile header */
+}
+
+.main-content.blurred {
+    filter: blur(2px);
+    pointer-events: none;
+}
+
+@media (max-width: 768px) {
+    .dashboard-container {
+        flex-direction: column;
+    }
+
+    .mobile-header {
+        display: flex;
+    }
+
+    .mobile-header-text{
+        font-size: 25px;
+        font-weight: 600;
+        color: #111827;
+    }
+
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100%;
+        z-index: 1000;
+        transition: width 0.3s ease;
+    }
+
+    .sidebar.collapsed {
+        width: 0;
+        padding: 0;
+        overflow: hidden;
+    }
+
+    .sidebar:not(.collapsed) {
+        width: 70%; /* Good amount of width when expanded */
+    }
+
+    .main-content {
+        padding: 15px;
+    }
+
+    .dashboard-header .profile-btn{
+        display: none; /* Hide profile button on mobile */
+    }
+
+    .announcement-slider-container {
+        max-width: 100%;
+        margin: 0 auto 30px;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    }
+    .announcement-slide {
+        position: relative;
+        height: 250px;
+        overflow: hidden;
+        border-radius: 16px;
+        animation: floatUpAnnouncement 0.8s ease-out;
+    }
+    .announcement-image {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        transition: transform 0.5s;
+    }
+}
+
+@media (min-width: 769px) {
+    .dashboard-container {
+        flex-direction: row;
+    }
+
+    .sidebar {
+        height: 100vh;
+        position: static;
+    }
+
+    .main-content {
+        margin-top: 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-container {
+        flex-direction: column;
+        width: 100vw; /* Full viewport width on mobile */
+        min-width: 0; /* Override any min-width constraints */
+    }
+
+    .main-content {
+        width: 100vw; /* Full viewport width */
+        padding: 15px;
+        margin-top: 70px; /* Adjust for mobile header */
+    }
+
+    .announcement-slider-container {
+        width: 90vw; /* Full viewport width */
+        max-width: 100vw; /* Ensure it doesn’t exceed viewport */
+        margin: 0 0 30px 0; /* Remove horizontal margins */
+        height: 250px;
+    }
+
+    .announcement-slide {
+        width: 100%; /* Full viewport width */
+        object-fit: fill;
+    }
+
+    .announcement-image {
+        width: 100%; /* Full viewport width */
+        object-fit: fill;
+    }
+
+
+    .profile-completion-form {
+        width: 95vw; /* Nearly full viewport width with slight padding */
+        max-width: 95vw; /* Prevent exceeding viewport */
+        padding: 25px 20px;
+    }
+
+    /* Mobile announcement text styling */
+.mobile-announcement-text {
+    margin: 1rem 0;
+    padding: 1rem;
+    background-color: #f5f5f5;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .mobile-announcement-item {
+    display: none;
+    padding: 0.5rem 0;
+  }
+  
+  .mobile-announcement-item.active {
+    display: block;
+  }
+  
+  .mobile-announcement-item h3 {
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+    color: #333;
+  }
+  
+  .mobile-announcement-item p {
+    font-size: 0.9rem;
+    color: #666;
+    line-height: 1.4;
+  }
+}
+
+
+  
+  /* Hide mobile text in desktop view */
+  @media (min-width: 769px) {
+    .mobile-announcement-text {
+      display: none;
+    }
+
+    .floating-announcements-container{
+        display: none;
+    }
+  }
+  
+  /* Make sure the announcement image takes full width in mobile */
+  @media (max-width: 768px) {
+
+    .main-content {
+      width: calc(100% - 20px);
+    }
+    
+    .announcement-slide .announcement-text {
+      display: none;
+    }
+
+    .floating-announcements-container {
+    position: relative;
+    width: 90vw;
+    height: 400px;
+    overflow: hidden;
+    background-color: #f7f9fc;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+.floating-announcements-heading {
+    background: linear-gradient(135deg, var(--primary-color), #1f2937);
+    color: white;
+    padding: 8px 16px;
+    font-weight: 600;
+    text-align: center;
+    font-size: 1rem;
+}
+
+.floating-announcement-item {
+    position: absolute;
+    width: 90%;
+    left: 1%;
+    padding: 12px;
+    background-color: white;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 1s ease-in-out, opacity 0.5s ease-in-out;
+}
+
+.floating-announcement-item h3 {
+    font-size: 1rem;
+    margin: 0 0 6px 0;
+    color: black;
+}
+
+.floating-announcement-item p {
+    font-size: 0.875rem;
+    margin: 0;
+    color: #333;
+}
+
+.floating-announcements-container {
+    width: 90vw;
+    height: 500px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.floating-announcements-heading {
+    padding: 12px 16px;
+    font-size: 18px;
+    font-weight: 600;
+    background-color: #4a90e2;
+    color: white;
+    text-align: center;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+}
+
+.announcements-content {
+    position: relative;
+    height: calc(100% - 42px);
+    overflow: hidden;
+    padding: 10px;
+}
+
+.floating-announcement-item {
+    position: absolute;
+    width: 75vw;
+    left: 2vw;
+    height: 100px;
+    padding: 12px 16px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: opacity 0.3s ease;
+    border-left: 4px solid #4a90e2;
+}
+
+.floating-announcement-item h3 {
+    margin: 0 0 6px;
+    font-size: 16px;
+    color: #333;
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.floating-announcement-item p {
+    margin: 0;
+    font-size: 14px;
+    color: #555;
+    line-height: 1.4;
+}
+
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: calc(100% - 42px);
+    color: #888;
+}
+
+.empty-icon {
+    font-size: 32px;
+    margin-bottom: 12px;
+}
+
+/* Add animation for smoother transitions */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.floating-announcement-item {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+  }
+
+  

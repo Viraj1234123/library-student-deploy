@@ -1,32 +1,47 @@
-import { useState } from "react";
+import { useState, useEffect } from "react"; // Add useEffect
 import { useNavigate } from "react-router-dom";
 import API from "../api";
 import "./Article.css";
 import Sidebar from "../components/Sidebar";
 import ProfileButton from "../components/ProfileButton";
 import Alert from "../components/Alert";
+import MobileHeader from "../components/MobileHeader";
 
 const ArticleRequest = () => {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(window.innerWidth <= 768); // Initial state based on screen size
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
-  const [alertType, setAlertType] = useState("error"); // Can be "error", "warning", "success", "info"
-  
+  const [alertType, setAlertType] = useState("error");
+
   const [formData, setFormData] = useState({
     title: "",
     authors: "",
     journal: "",
     publicationYear: "",
     DOI: "",
-    additionalInfo: ""
+    additionalInfo: "",
   });
+
+  useEffect(() => {
+    // Listen for the toggleSidebar event from MobileHeader
+    const handleSidebarToggle = (event) => {
+      setIsCollapsed(event.detail.isCollapsed);
+    };
+
+    window.addEventListener("toggleSidebar", handleSidebarToggle);
+
+    // Cleanup the event listener on unmount
+    return () => {
+      window.removeEventListener("toggleSidebar", handleSidebarToggle);
+    };
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const displayAlert = (message, type = "error") => {
@@ -38,7 +53,7 @@ const ArticleRequest = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
     try {
       await API.post("/article-sharing/request", formData);
       setSubmitted(true);
@@ -48,7 +63,7 @@ const ArticleRequest = () => {
         journal: "",
         publicationYear: "",
         DOI: "",
-        additionalInfo: ""
+        additionalInfo: "",
       });
       displayAlert("Article request submitted successfully!", "success");
     } catch (error) {
@@ -61,6 +76,8 @@ const ArticleRequest = () => {
 
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);
+    // Optionally dispatch the event here too if you want local toggle to sync with MobileHeader
+    window.dispatchEvent(new CustomEvent("toggleSidebar", { detail: { isCollapsed: !isCollapsed } }));
   };
 
   const dismissAlert = () => {
@@ -69,23 +86,22 @@ const ArticleRequest = () => {
 
   return (
     <div className="dashboard-container article-request-container">
-      {/* Alert Component */}
-      <Alert 
+      <Alert
         message={alertMessage}
         type={alertType}
         show={showAlert}
         onDismiss={dismissAlert}
         autoDismissTime={5000}
       />
-      
-      {/* Sidebar Component */}
-      <Sidebar 
-        isCollapsed={isCollapsed} 
+
+      <MobileHeader />
+
+      <Sidebar
+        isCollapsed={isCollapsed}
         toggleSidebar={toggleSidebar}
         activeItem="article-request"
       />
 
-      {/* Main Content */}
       <div className="main-content">
         <div className="dashboard-header">
           <div className="heading_color">📝 Request an Article</div>

@@ -4,13 +4,19 @@ import API from "../api";
 import Sidebar from "../components/Sidebar";
 import "./MyArticles.css";
 import ProfileButton from "../components/ProfileButton";
+import MobileHeader from "../components/MobileHeader"; // Import MobileHeader
+import Alert from "../components/Alert"; // Import Alert
 
 const MyArticles = () => {
   const navigate = useNavigate();
   const [articles, setArticles] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(window.innerWidth <= 768); // Initial state based on screen size
+  const [alertInfo, setAlertInfo] = useState({
+    show: false,
+    message: "",
+    type: "error",
+  });
 
   useEffect(() => {
     const fetchArticles = async () => {
@@ -19,13 +25,31 @@ const MyArticles = () => {
         setArticles(response.data.data || response.data);
       } catch (err) {
         console.error("Error fetching articles:", err);
-        setError("Failed to load your article requests. Please try again later.");
+        setAlertInfo({
+          show: true,
+          message: "Failed to load your article requests. Please try again later.",
+          type: "error",
+        });
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchArticles();
+  }, []);
+
+  // Listen for sidebar toggle event from MobileHeader
+  useEffect(() => {
+    const handleSidebarToggle = (event) => {
+      setIsCollapsed(event.detail.isCollapsed);
+    };
+
+    window.addEventListener("toggleSidebar", handleSidebarToggle);
+
+    // Cleanup the event listener on unmount
+    return () => {
+      window.removeEventListener("toggleSidebar", handleSidebarToggle);
+    };
   }, []);
 
   const handleBack = () => {
@@ -42,6 +66,12 @@ const MyArticles = () => {
 
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);
+    // Dispatch event to sync with MobileHeader
+    window.dispatchEvent(new CustomEvent("toggleSidebar", { detail: { isCollapsed: !isCollapsed } }));
+  };
+
+  const dismissAlert = () => {
+    setAlertInfo({ ...alertInfo, show: false });
   };
 
   const getStatusBadgeClass = (status) => {
@@ -72,10 +102,10 @@ const MyArticles = () => {
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
 
@@ -89,16 +119,24 @@ const MyArticles = () => {
   };
 
   return (
-    <div className={`dashboard-container ${isCollapsed ? 'sidebar-collapsed' : ''}`}>
-      {/* Sidebar Component */}
-      <Sidebar 
-        isCollapsed={isCollapsed} 
+    <div className={`dashboard-container ${isCollapsed ? "sidebar-collapsed" : ""}`}>
+      <Alert
+        message={alertInfo.message}
+        type={alertInfo.type}
+        show={alertInfo.show}
+        onDismiss={dismissAlert}
+        autoDismissTime={5000}
+      />
+
+      <MobileHeader /> {/* Add MobileHeader here */}
+
+      <Sidebar
+        isCollapsed={isCollapsed}
         toggleSidebar={toggleSidebar}
         activeItem="my-articles"
       />
 
-      {/* Main Content */}
-      <div className="main-content">
+      <div className={`main-content ${!isCollapsed && window.innerWidth <= 768 ? "blurred" : ""}`}>
         <div className="my-articles-container">
           <div className="dashboard-header">
             <div className="heading_color">📂 My Article Requests</div>
@@ -115,11 +153,6 @@ const MyArticles = () => {
               <div className="loading-spinner"></div>
               <p>Loading your articles...</p>
             </div>
-          ) : error ? (
-            <div className="error-message">
-              <p>{error}</p>
-              <button onClick={() => window.location.reload()}>Try Again</button>
-            </div>
           ) : articles.length === 0 ? (
             <div className="empty-state">
               <h2>No Article Requests Yet</h2>
@@ -130,7 +163,7 @@ const MyArticles = () => {
             <div className="articles-list">
               {articles.map((article) => {
                 const daysRemaining = article.validTill ? calculateDaysRemaining(article.validTill) : 0;
-                
+
                 return (
                   <div key={article._id} className="article-card">
                     <div className="article-header">
@@ -139,26 +172,18 @@ const MyArticles = () => {
                         {getStatusDisplay(article.status)}
                       </span>
                     </div>
-                    
+
                     <div className="article-details">
-                      {article.authors && (
-                        <p><strong>Author(s):</strong> {article.authors}</p>
-                      )}
-                      {article.journal && (
-                        <p><strong>Journal:</strong> {article.journal}</p>
-                      )}
-                      {article.publicationYear && (
-                        <p><strong>Year:</strong> {article.publicationYear}</p>
-                      )}
-                      {article.DOI && (
-                        <p><strong>DOI:</strong> {article.DOI}</p>
-                      )}
+                      {article.authors && <p><strong>Author(s):</strong> {article.authors}</p>}
+                      {article.journal && <p><strong>Journal:</strong> {article.journal}</p>}
+                      {article.publicationYear && <p><strong>Year:</strong> {article.publicationYear}</p>}
+                      {article.DOI && <p><strong>DOI:</strong> {article.DOI}</p>}
                       <p><strong>Requested:</strong> {formatDate(article.requestedAt || article.createdAt)}</p>
-                      
+
                       {article.status === "shared" && article.sharedAt && (
                         <p><strong>Fulfilled:</strong> {formatDate(article.sharedAt)}</p>
                       )}
-                      
+
                       {article.validTill && (
                         <p className={daysRemaining < 3 ? "expiry-warning" : ""}>
                           <strong>Available until:</strong> {formatDate(article.validTill)}
@@ -166,17 +191,17 @@ const MyArticles = () => {
                         </p>
                       )}
                     </div>
-                    
+
                     {article.additionalInfo && (
                       <div className="additional-info">
                         <p><strong>Additional Information:</strong></p>
                         <p>{article.additionalInfo}</p>
                       </div>
                     )}
-                    
+
                     {article.status === "shared" && (
                       <div className="article-actions">
-                        <button 
+                        <button
                           onClick={() => handleViewArticle(article._id)}
                           className="view-button"
                           disabled={daysRemaining === 0}
@@ -185,13 +210,13 @@ const MyArticles = () => {
                         </button>
                       </div>
                     )}
-                    
+
                     {article.status === "requested" && (
                       <div className="article-status-message">
                         <p>Your request is being reviewed by library staff.</p>
                       </div>
                     )}
-                    
+
                     {article.status === "rejected" && (
                       <div className="article-status-message rejected">
                         <p><strong>Unable to fulfill:</strong> We couldn't find or access this article.</p>

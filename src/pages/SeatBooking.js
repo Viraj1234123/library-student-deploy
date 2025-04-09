@@ -6,6 +6,7 @@ import "./SeatBooking.css";
 import Sidebar from "../components/Sidebar";
 import ProfileButton from "../components/ProfileButton";
 import Alert from "../components/Alert";
+import MobileHeader from "../components/MobileHeader"; // Import MobileHeader
 
 // Initialize WebSocket connection
 const socket = io(process.env.REACT_APP_BACKEND_URL); // Replace with your server URL
@@ -29,16 +30,35 @@ const SeatBooking = () => {
   const [todayTimeSlots, setTodayTimeSlots] = useState([]);
   const [tomorrowTimeSlots, setTomorrowTimeSlots] = useState([]);
   const [selectedDay, setSelectedDay] = useState("today");
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(window.innerWidth <= 768); // Initial state based on screen size
   const [pendingSelections, setPendingSelections] = useState([]);
   const [alert, setAlert] = useState({ show: false, message: "", type: "error" }); // Alert state
   const timeoutRefs = useRef({});
+  const [timeSlots, setTimeSlots] = useState([]);
 
   const maxBookingHours = 5; // Maximum booking hours allowed per day
+
+  // Listen for sidebar toggle event from MobileHeader
+  useEffect(() => {
+    const handleSidebarToggle = (event) => {
+      setIsSidebarCollapsed(event.detail.isCollapsed);
+    };
+
+    window.addEventListener("toggleSidebar", handleSidebarToggle);
+
+    // Cleanup the event listener on unmount
+    return () => {
+      window.removeEventListener("toggleSidebar", handleSidebarToggle);
+    };
+  }, []);
 
   // Toggle sidebar function
   const toggleSidebar = () => {
     setIsSidebarCollapsed(!isSidebarCollapsed);
+    // Dispatch event to sync with MobileHeader
+    window.dispatchEvent(
+      new CustomEvent("toggleSidebar", { detail: { isCollapsed: !isSidebarCollapsed } })
+    );
   };
 
   // Show alert function
@@ -77,7 +97,11 @@ const SeatBooking = () => {
         prev.filter((p) => !(p.seatId === seatId && p.timeSlot === timeSlot && p.day === day))
       );
 
-      if (viewMode === "time-first" && selectedTimeSlot?.startTime === timeSlot && selectedTimeSlot?.day === day) {
+      if (
+        viewMode === "time-first" &&
+        selectedTimeSlot?.startTime === timeSlot &&
+        selectedTimeSlot?.day === day
+      ) {
         setBookedSeatsForTime((prev) => [...prev, { _id: seatId }]);
       }
       if (viewMode === "room-first" && selectedSeat?._id === seatId) {
@@ -162,13 +186,14 @@ const SeatBooking = () => {
       })
       .catch((err) => {
         console.error("Error fetching data:", err);
+        showAlert("Failed to load seat booking data. Please try again later.", "error");
         setLoading(false);
       });
   }, []);
 
   const generateTimeSlots = () => {
     const indianNow = new Date(
-      new Date().toLocaleString()
+      new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
     );
     const currentHour = indianNow.getHours();
 
@@ -252,6 +277,7 @@ const SeatBooking = () => {
       })
       .catch((err) => {
         console.error("Error fetching available seats:", err);
+        showAlert("Failed to fetch available seats. Please try again.", "error");
         setLoading(false);
       });
   };
@@ -266,9 +292,7 @@ const SeatBooking = () => {
         })
         .catch((err) => console.error("Error fetching seat bookings:", err));
     } else if (viewMode === "time-first") {
-      const isBooked = bookedSeatsForTime.some(
-        (bookedSeat) => bookedSeat._id === seat._id
-      );
+      const isBooked = bookedSeatsForTime.some((bookedSeat) => bookedSeat._id === seat._id);
       if (!isBooked) {
         if (selectedSeat && selectedSeat._id !== seat._id) {
           socket.emit("seatDeselected", {
@@ -288,8 +312,6 @@ const SeatBooking = () => {
       }
     }
   };
-
-  const [timeSlots, setTimeSlots] = useState([]);
 
   useEffect(() => {
     const fetchTimeSlots = async () => {
@@ -338,7 +360,6 @@ const SeatBooking = () => {
   }, [selectedDay, viewMode, selectedSeat, selectedRoom, seatBookings, userExistingBookings]);
 
   const handleTimeSlotSelection = (slot) => {
-
     if (viewMode === "room-first") {
       const isSelected = selectedTimeSlots.some(
         (ts) => ts.startTime === slot.startTime && ts.day === slot.day
@@ -358,7 +379,9 @@ const SeatBooking = () => {
         }
       } else if (!slot.isBooked) {
         const existingBookingHours = userExistingBookings[slot.day].length;
-        const selectedSlotsForSameDay = selectedTimeSlots.filter((ts) => ts.day === slot.day).length;
+        const selectedSlotsForSameDay = selectedTimeSlots.filter(
+          (ts) => ts.day === slot.day
+        ).length;
 
         if (existingBookingHours + selectedSlotsForSameDay + 1 > maxBookingHours) {
           showAlert(`You can only book a maximum of ${maxBookingHours} hours for ${slot.day}.`);
@@ -381,7 +404,9 @@ const SeatBooking = () => {
     } else if (viewMode === "time-first") {
       const existingBookingHours = userExistingBookings[slot.day].length;
       if (existingBookingHours + 1 > maxBookingHours) {
-        showAlert(`You have already booked the maximum of ${maxBookingHours} hours for ${slot.day}.`);
+        showAlert(
+          `You have already booked the maximum of ${maxBookingHours} hours for ${slot.day}.`
+        );
         return;
       }
 
@@ -408,7 +433,6 @@ const SeatBooking = () => {
   };
 
   const handleBookingSubmission = async () => {
-
     if (viewMode === "room-first" && (!selectedTimeSlots.length || !selectedSeat)) {
       showAlert("Please select a seat and at least one time slot.");
       return;
@@ -419,12 +443,15 @@ const SeatBooking = () => {
       return;
     }
 
-    const timeSlots = viewMode === "room-first" ? selectedTimeSlots : [selectedTimeSlot];
+    const timeSlotsToBook = viewMode === "room-first" ? selectedTimeSlots : [selectedTimeSlot];
 
-    const todaySlots = timeSlots.filter((slot) => slot.day === "today");
-    const tomorrowSlots = timeSlots.filter((slot) => slot.day === "tomorrow");
+    const todaySlots = timeSlotsToBook.filter((slot) => slot.day === "today");
+    const tomorrowSlots = timeSlotsToBook.filter((slot) => slot.day === "tomorrow");
 
-    if (todaySlots.length > 0 && userExistingBookings.today.length + todaySlots.length > maxBookingHours) {
+    if (
+      todaySlots.length > 0 &&
+      userExistingBookings.today.length + todaySlots.length > maxBookingHours
+    ) {
       showAlert(`This booking would exceed your daily limit of ${maxBookingHours} hours for today.`);
       return;
     }
@@ -433,13 +460,15 @@ const SeatBooking = () => {
       tomorrowSlots.length > 0 &&
       userExistingBookings.tomorrow.length + tomorrowSlots.length > maxBookingHours
     ) {
-      showAlert(`This booking would exceed your daily limit of ${maxBookingHours} hours for tomorrow.`);
+      showAlert(
+        `This booking would exceed your daily limit of ${maxBookingHours} hours for tomorrow.`
+      );
       return;
     }
 
     try {
       const bookingResponses = [];
-      for (const slot of timeSlots) {
+      for (const slot of timeSlotsToBook) {
         const response = await API.post("/seat-bookings/book-seat", {
           seatId: selectedSeat._id,
           startTime: slot.startTime,
@@ -454,9 +483,11 @@ const SeatBooking = () => {
       }
 
       const slotText =
-        timeSlots.length > 1
-          ? `slots ${timeSlots.map((slot) => `${slot.day} ${slot.display}`).join(", ")}`
-          : `slot ${timeSlots[0].day} ${timeSlots[0].display}`;
+        timeSlotsToBook.length > 1
+          ? `slots ${timeSlotsToBook
+            .map((slot) => `${slot.day} ${slot.display}`)
+            .join(", ")}`
+          : `slot ${timeSlotsToBook[0].day} ${timeSlotsToBook[0].display}`;
 
       showAlert(`Seat ${selectedSeat.seatNumber} booked for ${slotText}`, "success");
 
@@ -487,7 +518,7 @@ const SeatBooking = () => {
         setSelectedSeat(null);
       }
     } catch (err) {
-      showAlert(err.response?.data?.message || "Failed to book seat!");
+      showAlert(err.response?.data?.message || "Failed to book seat!", "error");
     }
   };
 
@@ -520,8 +551,12 @@ const SeatBooking = () => {
     if (!selectedRoom) return null;
 
     const sections = organizeRoomSeats(selectedRoom.name);
-    const minY = Math.min(...sections.map((section) => Math.min(...section.seats.map((seat) => seat.normalizedY))));
-    const maxY = Math.max(...sections.map((section) => Math.max(...section.seats.map((seat) => seat.normalizedY))));
+    const minY = Math.min(
+      ...sections.map((section) => Math.min(...section.seats.map((seat) => seat.normalizedY)))
+    );
+    const maxY = Math.max(
+      ...sections.map((section) => Math.max(...section.seats.map((seat) => seat.normalizedY)))
+    );
 
     return (
       <div
@@ -622,42 +657,43 @@ const SeatBooking = () => {
               return (
                 <div
                   key={seatIdx}
-                  className={`absolute-seat ${isBooked ? "booked" : isPending ? "pending" : "available"
-                    } ${selectedSeat && selectedSeat._id === seat._id ? "selected" : ""}`}
+                  className={`absolute-seat ${
+                    isBooked ? "booked" : isPending ? "pending" : "available"
+                  } ${selectedSeat && selectedSeat._id === seat._id ? "selected" : ""}`}
                   style={
                     isBooked || isPending
                       ? {
-                        position: "absolute",
-                        left: `${seat.normalizedX}%`,
-                        bottom: `${seat.normalizedY}%`,
-                        transform: "translate(-50%, 50%)",
-                        width: "25px",
-                        height: "25px",
-                        borderRadius: "5px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        cursor: "not-allowed",
-                        fontSize: "12px",
-                        boxShadow: "0 2px 5px rgba(0,0,0,0.2)",
-                        zIndex: 5,
-                      }
+                          position: "absolute",
+                          left: `${seat.normalizedX}%`,
+                          bottom: `${seat.normalizedY}%`,
+                          transform: "translate(-50%, 50%)",
+                          width: "25px",
+                          height: "25px",
+                          borderRadius: "5px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          cursor: "not-allowed",
+                          fontSize: "12px",
+                          boxShadow: "0 2px 5px rgba(0,0,0,0.2)",
+                          zIndex: 5,
+                        }
                       : {
-                        position: "absolute",
-                        left: `${seat.normalizedX}%`,
-                        bottom: `${seat.normalizedY}%`,
-                        transform: "translate(-50%, 50%)",
-                        width: "25px",
-                        height: "25px",
-                        borderRadius: "5px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        cursor: "pointer",
-                        fontSize: "12px",
-                        boxShadow: "0 2px 5px rgba(0,0,0,0.2)",
-                        zIndex: 5,
-                      }
+                          position: "absolute",
+                          left: `${seat.normalizedX}%`,
+                          bottom: `${seat.normalizedY}%`,
+                          transform: "translate(-50%, 50%)",
+                          width: "25px",
+                          height: "25px",
+                          borderRadius: "5px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          cursor: "pointer",
+                          fontSize: "12px",
+                          boxShadow: "0 2px 5px rgba(0,0,0,0.2)",
+                          zIndex: 5,
+                        }
                   }
                   onClick={isClickable ? () => handleSelectSeat(seat) : undefined}
                 >
@@ -673,33 +709,44 @@ const SeatBooking = () => {
 
   return (
     <div className="dashboard-container">
+      <Alert
+        message={alert.message}
+        type={alert.type}
+        show={alert.show}
+        onDismiss={dismissAlert}
+        autoDismissTime={5000}
+      />
+
+      <MobileHeader /> {/* Add MobileHeader here */}
+
       <Sidebar
         isCollapsed={isSidebarCollapsed}
         toggleSidebar={toggleSidebar}
         activeItem="seat-booking"
       />
 
-      <div className="main-content">
-
+      <div
+        className={`main-content ${
+          !isSidebarCollapsed && window.innerWidth <= 768 ? "blurred" : ""
+        }`}
+      >
         <div className="dashboard-header">
-            
-            <div className="heading_color">💺 Book a Seat</div>
-            <div className="header-right"> 
-            <div> <a href="https://www.iitrpr.ac.in/library/floor_plan.php" class="button-library-floor-plan" target="_blank">Library Floor Plan</a> </div>
-            <ProfileButton />
+          <div className="heading_color">💺 Book a Seat</div>
+          <div className="header-right">
+            <div>
+              <a
+                href="https://www.iitrpr.ac.in/library/floor_plan.php"
+                className="button-library-floor-plan"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Library Floor Plan
+              </a>
             </div>
+            <ProfileButton />
           </div>
+        </div>
         <div className="seat-booking-container">
-          
-
-          <Alert
-            message={alert.message}
-            type={alert.type}
-            show={alert.show}
-            onDismiss={dismissAlert}
-            autoDismissTime={5000}
-          />
-
           <div className="view-mode-toggle">
             <button
               className={`view-mode-btn ${viewMode === "room-first" ? "active" : ""}`}
@@ -717,7 +764,8 @@ const SeatBooking = () => {
 
           <div className="booking-limit-info">
             <p>
-              Daily booking limit: {userExistingBookings[selectedDay].length} of {maxBookingHours} hours used for {selectedDay}
+              Daily booking limit: {userExistingBookings[selectedDay].length} of {maxBookingHours}{" "}
+              hours used for {selectedDay}
               {viewMode === "room-first" && selectedTimeSlots.length > 0
                 ? ` (${selectedTimeSlots.filter((slot) => slot.day === selectedDay).length} additional hours selected)`
                 : ""}
@@ -781,7 +829,8 @@ const SeatBooking = () => {
                     <div className="time-slot-container">
                       <div className="selected-seat-info">
                         <h3>
-                          Selected Seat: {selectedSeat.seatNumber} ({selectedSeat.seatType}) in {selectedRoom.name}
+                          Selected Seat: {selectedSeat.seatNumber} ({selectedSeat.seatType}) in{" "}
+                          {selectedRoom.name}
                         </h3>
                         <button className="back-btn" onClick={() => setSelectedSeat(null)}>
                           ← Back to Seats
@@ -804,9 +853,13 @@ const SeatBooking = () => {
                       </div>
 
                       <div className="time-slot-selection">
-                        <h3>Select Time Slot(s) for {selectedDay.charAt(0).toUpperCase() + selectedDay.slice(1)}:</h3>
+                        <h3>
+                          Select Time Slot(s) for{" "}
+                          {selectedDay.charAt(0).toUpperCase() + selectedDay.slice(1)}:
+                        </h3>
                         <p className="note">
-                          You can select multiple time slots (max {maxBookingHours} hours per day including existing bookings)
+                          You can select multiple time slots (max {maxBookingHours} hours per day
+                          including existing bookings)
                         </p>
 
                         <div className="time-slots-grid">
@@ -822,17 +875,18 @@ const SeatBooking = () => {
                             return (
                               <div
                                 key={idx}
-                                className={`time-slot ${slot.isBooked || slot.isUserBooked
+                                className={`time-slot ${
+                                  slot.isBooked || slot.isUserBooked
                                     ? "booked"
                                     : isPending
-                                      ? "pending"
-                                      : "available"
-                                  } ${selectedTimeSlots.some(
-                                    (ts) => ts.startTime === slot.startTime && ts.day === slot.day
-                                  )
-                                    ? "selected"
-                                    : ""
-                                  }`}
+                                    ? "pending"
+                                    : "available"
+                                } ${selectedTimeSlots.some(
+                                  (ts) => ts.startTime === slot.startTime && ts.day === slot.day
+                                )
+                                  ? "selected"
+                                  : ""
+                                }`}
                                 onClick={isClickable ? () => handleTimeSlotSelection(slot) : undefined}
                               >
                                 {slot.display}
@@ -877,14 +931,19 @@ const SeatBooking = () => {
                         </button>
                       </div>
 
-                      <h3>Select a Time Slot for {selectedDay.charAt(0).toUpperCase() + selectedDay.slice(1)}:</h3>
+                      <h3>
+                        Select a Time Slot for{" "}
+                        {selectedDay.charAt(0).toUpperCase() + selectedDay.slice(1)}:
+                      </h3>
                       <p className="note">You can book up to {maxBookingHours} hours per day</p>
 
                       <div className="time-slots-grid">
                         {timeSlots.map((slot, idx) => (
                           <div
                             key={idx}
-                            className={`time-slot ${(slot.isBooked || slot.isUserBooked) ? "booked" : "available"}`}
+                            className={`time-slot ${
+                              slot.isBooked || slot.isUserBooked ? "booked" : "available"
+                            }`}
                             onClick={() => !slot.isBooked && handleTimeSlotSelection(slot)}
                           >
                             {slot.display}
@@ -897,7 +956,10 @@ const SeatBooking = () => {
                     <div className="rooms-container">
                       <div className="selected-time-info">
                         <h3>
-                          Selected Time: {selectedTimeSlot.day.charAt(0).toUpperCase() + selectedTimeSlot.day.slice(1)}, {selectedTimeSlot.display}
+                          Selected Time:{" "}
+                          {selectedTimeSlot.day.charAt(0).toUpperCase() +
+                            selectedTimeSlot.day.slice(1)}
+                          , {selectedTimeSlot.display}
                         </h3>
                         <button className="back-btn" onClick={() => setSelectedTimeSlot(null)}>
                           ← Back to Time Slots
@@ -922,7 +984,11 @@ const SeatBooking = () => {
                     <div className="theater-container">
                       <div className="selected-room-time-info">
                         <h3>
-                          Selected Time: {selectedTimeSlot.day.charAt(0).toUpperCase() + selectedTimeSlot.day.slice(1)}, {selectedTimeSlot.display} | Room: {selectedRoom.name} (Floor {selectedRoom.floor})
+                          Selected Time:{" "}
+                          {selectedTimeSlot.day.charAt(0).toUpperCase() +
+                            selectedTimeSlot.day.slice(1)}
+                          , {selectedTimeSlot.display} | Room: {selectedRoom.name} (Floor{" "}
+                          {selectedRoom.floor})
                         </h3>
                         <div className="back-buttons">
                           <button className="back-btn" onClick={() => setSelectedRoom(null)}>
@@ -955,7 +1021,10 @@ const SeatBooking = () => {
                       {selectedSeat && (
                         <div className="booking-actions">
                           <button className="book-btn" onClick={handleBookingSubmission}>
-                            Book Seat {selectedSeat.seatNumber} for {selectedTimeSlot.day.charAt(0).toUpperCase() + selectedTimeSlot.day.slice(1)}, {selectedTimeSlot.display}
+                            Book Seat {selectedSeat.seatNumber} for{" "}
+                            {selectedTimeSlot.day.charAt(0).toUpperCase() +
+                              selectedTimeSlot.day.slice(1)}
+                            , {selectedTimeSlot.display}
                           </button>
                           <button className="cancel-btn" onClick={handleCancelSelection}>
                             Cancel

@@ -3,9 +3,9 @@ import { useNavigate } from "react-router-dom";
 import API from "../api";
 import "./BookIssueRating.css";
 import Sidebar from "../components/Sidebar";
-import Profile from "./Profile";
 import ProfileButton from "../components/ProfileButton";
 import Alert from "../components/Alert";
+import MobileHeader from "../components/MobileHeader"; // Import MobileHeader
 
 const BookIssueRating = () => {
   const navigate = useNavigate();
@@ -18,7 +18,7 @@ const BookIssueRating = () => {
   const [issued, setIssued] = useState(false);
   const [filterType, setFilterType] = useState("title");
   const [showRecommendationForm, setShowRecommendationForm] = useState(false);
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(window.innerWidth <= 768); // Initial state based on screen size
   const [isLoading, setIsLoading] = useState(true);
   const [showResults, setShowResults] = useState(false);
   const searchSectionRef = useRef(null);
@@ -29,28 +29,11 @@ const BookIssueRating = () => {
     subject: "",
     comments: "",
   });
-  // Alert state
   const [alertInfo, setAlertInfo] = useState({
     show: false,
     message: "",
-    type: "error"
+    type: "error",
   });
-
-  const toggleSidebar = () => {
-    setIsCollapsed(!isCollapsed);
-  };
-
-  const dismissAlert = () => {
-    setAlertInfo({ ...alertInfo, show: false });
-  };
-
-  const showAlert = (message, type = "error") => {
-    setAlertInfo({
-      show: true,
-      message,
-      type
-    });
-  };
 
   useEffect(() => {
     setIsLoading(true);
@@ -79,6 +62,20 @@ const BookIssueRating = () => {
     }
   }, [search, books, filterType]);
 
+  // Listen for sidebar toggle event from MobileHeader
+  useEffect(() => {
+    const handleSidebarToggle = (event) => {
+      setIsCollapsed(event.detail.isCollapsed);
+    };
+
+    window.addEventListener("toggleSidebar", handleSidebarToggle);
+
+    // Cleanup the event listener on unmount
+    return () => {
+      window.removeEventListener("toggleSidebar", handleSidebarToggle);
+    };
+  }, []);
+
   // Improved click-outside handler using ref
   useEffect(() => {
     function handleClickOutside(event) {
@@ -86,21 +83,39 @@ const BookIssueRating = () => {
         setShowResults(false);
       }
     }
-    
+
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
+  const toggleSidebar = () => {
+    setIsCollapsed(!isCollapsed);
+    // Dispatch event to sync with MobileHeader
+    window.dispatchEvent(new CustomEvent("toggleSidebar", { detail: { isCollapsed: !isCollapsed } }));
+  };
+
+  const dismissAlert = () => {
+    setAlertInfo({ ...alertInfo, show: false });
+  };
+
+  const showAlert = (message, type = "error") => {
+    setAlertInfo({
+      show: true,
+      message,
+      type,
+    });
+  };
+
   const handleSelectBook = async (book) => {
     setSelectedBook(book);
     setSearch(book.title);
-    setFilteredBooks([]); // Clear search results immediately
-    setShowResults(false); // Explicitly hide results
+    setFilteredBooks([]);
+    setShowResults(false);
     setShowRatingInput(false);
     setNewRating("");
-    
+
     try {
       const checkRes = await API.get(`books/get-book/${book._id}`);
       setIssued(checkRes.data.data.issued);
@@ -137,8 +152,7 @@ const BookIssueRating = () => {
       showAlert("Rating submitted successfully!", "success");
       setNewRating("");
       setShowRatingInput(false);
-      
-      // Update the displayed rating
+
       const ratingRes = await API.get(`/ratings/${selectedBook._id}`);
       setSelectedBook({ ...selectedBook, rating: ratingRes.data.data.rating });
     } catch (error) {
@@ -179,17 +193,26 @@ const BookIssueRating = () => {
 
   return (
     <div className="dashboard-container">
-      <Sidebar 
-        isCollapsed={isCollapsed} 
-        toggleSidebar={toggleSidebar} 
-        activeItem="books" 
+      <Alert
+        message={alertInfo.message}
+        type={alertInfo.type}
+        show={alertInfo.show}
+        onDismiss={dismissAlert}
+        autoDismissTime={5000}
       />
 
-      <div className="main-content">
+      <MobileHeader /> {/* Add MobileHeader here */}
 
+      <Sidebar
+        isCollapsed={isCollapsed}
+        toggleSidebar={toggleSidebar}
+        activeItem="books"
+      />
+
+      <div className={`main-content ${!isCollapsed && window.innerWidth <= 768 ? "blurred" : ""}`}>
         <div className="dashboard-header">
           <div className="header-left">
-          <div className="heading_color">📚 Library Catalog</div>
+            <div className="heading_color">📚 Library Catalog</div>
             <p>Search, borrow, and rate books from our collection</p>
 
             <div className="search-section" ref={searchSectionRef}>
@@ -222,173 +245,167 @@ const BookIssueRating = () => {
               )}
             </div>
           </div>
-          
+
           <div className="header-right">
-            
             <button className="recommend-btn" onClick={() => setShowRecommendationForm(true)}>
               Recommend a Book
             </button>
             <ProfileButton />
           </div>
         </div>
-      <div className="book-container">
-        <Alert 
-          message={alertInfo.message}
-          type={alertInfo.type}
-          show={alertInfo.show}
-          onDismiss={dismissAlert}
-          autoDismissTime={5000}
-        />
 
-        
-
-        {isLoading ? (
-          <div className="loading-indicator">Loading library catalog...</div>
-        ) : selectedBook ? (
-          <div className="book-details-card">
-            <div className="book-image-container">
-              <img
-                src={selectedBook.coverImage || "default-book.jpg"}
-                alt="Book Cover"
-                className="book-image"
-              />
-            </div>
-
-            <div className="book-info">
-              <h2 className="book-title">{selectedBook.title}</h2>
-              <div className="book-metadata">
-                <div className="metadata-item">
-                  <span className="metadata-label">Author</span>
-                  <span className="metadata-value">{selectedBook.author}</span>
-                </div>
-                <div className="metadata-item">
-                  <span className="metadata-label">Available Copies</span>
-                  <span className="metadata-value">{selectedBook.available_copies}</span>
-                </div>
-                <div className="metadata-item">
-                  <span className="metadata-label">Rating</span>
-                  <span className="metadata-value">
-                    {selectedBook.rating ? (
-                      <div className="star-rating">
-                        <span className="rating-value">{selectedBook.rating.toFixed(1)}</span>
-                        <div className="stars">
-                          {[1, 2, 3, 4, 5].map((star) => (
-                            <span 
-                              key={star} 
-                              className={`star ${star <= Math.round(selectedBook.rating) ? 'filled' : ''}`}
-                            >
-                              ★
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    ) : (
-                      "Not Rated Yet"
-                    )}
-                  </span>
-                </div>
-              </div>
-              
-              <div className="book-actions">
-                <button 
-                  className={`action-btn issue-btn ${issued ? 'disabled' : ''}`}
-                  onClick={handleIssue} 
-                  disabled={issued}
-                >
-                  {issued ? "Already Issued" : "Issue Book"}
-                </button>
-                <button 
-                  className={`action-btn rate-btn ${showRatingInput ? 'active' : ''}`}
-                  onClick={toggleRatingInput}
-                >
-                  {showRatingInput ? "Cancel Rating" : "Rate Book"}
-                </button>
+        <div className="book-container">
+          {isLoading ? (
+            <div className="loading-indicator">Loading library catalog...</div>
+          ) : selectedBook ? (
+            <div className="book-details-card">
+              <div className="book-image-container">
+                <img
+                  src={selectedBook.coverImage || "default-book.jpg"}
+                  alt="Book Cover"
+                  className="book-image"
+                />
               </div>
 
-              {showRatingInput && (
-                <div className="rate-book-section">
-                  <div className="rating-selector">
-                    {[1, 2, 3, 4, 5].map((rating) => (
-                      <span
-                        key={rating}
-                        className={`rating-star ${Number(newRating) >= rating ? 'selected' : ''}`}
-                        onClick={() => setNewRating(rating)}
-                      >
-                        ★
-                      </span>
-                    ))}
+              <div className="book-info">
+                <h2 className="book-title">{selectedBook.title}</h2>
+                <div className="book-metadata">
+                  <div className="metadata-item">
+                    <span className="metadata-label">Author</span>
+                    <span className="metadata-value">{selectedBook.author}</span>
                   </div>
-                  <button className="submit-rating-btn" onClick={handleRateBook}>
-                    Submit Rating
+                  <div className="metadata-item">
+                    <span className="metadata-label">Available Copies</span>
+                    <span className="metadata-value">{selectedBook.available_copies}</span>
+                  </div>
+                  <div className="metadata-item">
+                    <span className="metadata-label">Rating</span>
+                    <span className="metadata-value">
+                      {selectedBook.rating ? (
+                        <div className="star-rating">
+                          <span className="rating-value">{selectedBook.rating.toFixed(1)}</span>
+                          <div className="stars">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <span
+                                key={star}
+                                className={`star ${star <= Math.round(selectedBook.rating) ? "filled" : ""}`}
+                              >
+                                ★
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      ) : (
+                        "Not Rated Yet"
+                      )}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="book-actions">
+                  <button
+                    className={`action-btn issue-btn ${issued ? "disabled" : ""}`}
+                    onClick={handleIssue}
+                    disabled={issued}
+                  >
+                    {issued ? "Already Issued" : "Issue Book"}
+                  </button>
+                  <button
+                    className={`action-btn rate-btn ${showRatingInput ? "active" : ""}`}
+                    onClick={toggleRatingInput}
+                  >
+                    {showRatingInput ? "Cancel Rating" : "Rate Book"}
                   </button>
                 </div>
-              )}
-            </div>
-          </div>
-        ) : (
-          <div className="empty-state">
-            <div className="empty-illustration">📚</div>
-            <h2>Find Your Next Great Read</h2>
-            <p>Search for books by title, author, or subject using the search bar above.</p>
-          </div>
-        )}
 
-        {showRecommendationForm && (
-          <div className="recommendation-modal">
-            <div className="recommendation-form">
-              <h2>Recommend a Book</h2>
-              <div className="form-group">
-                <input
-                  type="text"
-                  name="title"
-                  placeholder="Title"
-                  value={recommendationData.title}
-                  onChange={handleRecommendationChange}
-                />
-              </div>
-              <div className="form-group">
-                <input
-                  type="text"
-                  name="author"
-                  placeholder="Author"
-                  value={recommendationData.author}
-                  onChange={handleRecommendationChange}
-                />
-              </div>
-              <div className="form-group">
-                <input
-                  type="text"
-                  name="edition"
-                  placeholder="Edition"
-                  value={recommendationData.edition}
-                  onChange={handleRecommendationChange}
-                />
-              </div>
-              <div className="form-group">
-                <input
-                  type="text"
-                  name="subject"
-                  placeholder="Subject"
-                  value={recommendationData.subject}
-                  onChange={handleRecommendationChange}
-                />
-              </div>
-              <div className="form-group">
-                <textarea
-                  name="comments"
-                  placeholder="Comments (optional)"
-                  value={recommendationData.comments}
-                  onChange={handleRecommendationChange}
-                />
-              </div>
-              <div className="form-actions">
-                <button className="submit-btn" onClick={handleRecommendationSubmit}>Submit</button>
-                <button className="cancel-btn" onClick={() => setShowRecommendationForm(false)}>Cancel</button>
+                {showRatingInput && (
+                  <div className="rate-book-section">
+                    <div className="rating-selector">
+                      {[1, 2, 3, 4, 5].map((rating) => (
+                        <span
+                          key={rating}
+                          className={`rating-star ${Number(newRating) >= rating ? "selected" : ""}`}
+                          onClick={() => setNewRating(rating)}
+                        >
+                          ★
+                        </span>
+                      ))}
+                    </div>
+                    <button className="submit-rating-btn" onClick={handleRateBook}>
+                      Submit Rating
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
-          </div>
-        )}
-      </div>
+          ) : (
+            <div className="empty-state">
+              <div className="empty-illustration">📚</div>
+              <h2>Find Your Next Great Read</h2>
+              <p>Search for books by title, author, or subject using the search bar above.</p>
+            </div>
+          )}
+
+          {showRecommendationForm && (
+            <div className="recommendation-modal">
+              <div className="recommendation-form">
+                <h2>Recommend a Book</h2>
+                <div className="form-group">
+                  <input
+                    type="text"
+                    name="title"
+                    placeholder="Title"
+                    value={recommendationData.title}
+                    onChange={handleRecommendationChange}
+                  />
+                </div>
+                <div className="form-group">
+                  <input
+                    type="text"
+                    name="author"
+                    placeholder="Author"
+                    value={recommendationData.author}
+                    onChange={handleRecommendationChange}
+                  />
+                </div>
+                <div className="form-group">
+                  <input
+                    type="text"
+                    name="edition"
+                    placeholder="Edition"
+                    value={recommendationData.edition}
+                    onChange={handleRecommendationChange}
+                  />
+                </div>
+                <div className="form-group">
+                  <input
+                    type="text"
+                    name="subject"
+                    placeholder="Subject"
+                    value={recommendationData.subject}
+                    onChange={handleRecommendationChange}
+                  />
+                </div>
+                <div className="form-group">
+                  <textarea
+                    name="comments"
+                    placeholder="Comments (optional)"
+                    value={recommendationData.comments}
+                    onChange={handleRecommendationChange}
+                  />
+                </div>
+                <div className="form-actions">
+                  <button className="submit-btn" onClick={handleRecommendationSubmit}>
+                    Submit
+                  </button>
+                  <button className="cancel-btn" onClick={() => setShowRecommendationForm(false)}>
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
