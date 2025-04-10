@@ -40,6 +40,10 @@ const Sidebar = ({ isCollapsed, toggleSidebar, activeItem, onLogout }) => {
     };
   }, [isCollapsed, toggleSidebar]);
  
+  const openFloorPlan = () => {
+    window.open("https://www.iitrpr.ac.in/library/floor_plan.php", "_blank");
+  };
+
   return (
     <div 
       ref={sidebarRef}
@@ -103,6 +107,13 @@ const Sidebar = ({ isCollapsed, toggleSidebar, activeItem, onLogout }) => {
         >
           <span className="menu-icon">🗓️</span>
           {!isCollapsed && <span className="menu-text">Bookings</span>}
+        </li>
+        <li
+          className={activeItem === "floor-plan" ? "active" : ""}
+          onClick={openFloorPlan}
+        >
+          <span className="menu-icon">🗺️</span>
+          {!isCollapsed && <span className="menu-text">Library Floor Plan</span>}
         </li>
       </ul>
      
