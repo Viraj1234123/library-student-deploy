@@ -341,4 +341,8 @@ article
     overflow-y: visible;
   }
 
+    .header-buttons{
+        display: none;
+    }
+
 }

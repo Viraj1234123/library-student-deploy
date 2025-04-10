@@ -983,7 +983,6 @@
     display: none; /* Hidden by default on desktop */
     padding: 15px;
     background: #ffffff;
-    border-bottom: 1px solid #e5e7eb;
     position: fixed;
     top: 0;
     left: 0;
@@ -1023,7 +1022,7 @@
     margin-top: 70px; /* Space for mobile header */
 }
 
-.main-content.blurred {
+.blurred {
     filter: blur(2px);
     pointer-events: auto;
 }
@@ -1035,13 +1034,15 @@
 
     .mobile-header {
         display: flex;
-        height: 4%;
+        height: 5%;
+        max-height: 50px;
+        background-color: #f8f9fa;
     }
 
     .mobile-header-text{
         font-size: 25px;
         font-weight: 600;
-        color: #111827;
+        color: #030c1e;
     }
 
     .sidebar {

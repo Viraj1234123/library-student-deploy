@@ -323,7 +323,7 @@ const Dashboard = () => {
   };
 
   return (
-    <div className={`dashboard-container ${isCollapsed ? "sidebar-collapsed" : ""}`}>
+    <div className={`dashboard-container ${isCollapsed ? "sidebar-collapsed" : ""} `}>
       <Alert
         message={alert.message}
         type={alert.type}

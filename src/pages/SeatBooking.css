@@ -972,3 +972,15 @@
   margin-bottom: 20px;
   font-size: large;
 }
+
+@media (max-width: 768px) {
+
+    .header-right{
+        display: none;
+    }
+
+    .header-buttons{
+        display: none;
+    }
+    
+}

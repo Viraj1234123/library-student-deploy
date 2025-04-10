@@ -49,19 +49,25 @@ const MobileHeader = () => {
       }
     };
 
+    // Listen for sidebar toggle events from other components
+    const handleSidebarToggle = (event) => {
+      setIsCollapsed(event.detail.isCollapsed);
+    };
+
     window.addEventListener("resize", handleResize);
     document.addEventListener("mousedown", handleClickOutside);
+    window.addEventListener("toggleSidebar", handleSidebarToggle);
 
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
       window.removeEventListener("resize", handleResize);
+      window.removeEventListener("toggleSidebar", handleSidebarToggle);
     };
   }, []);
 
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);
     // Emit an event or use a context to notify the parent (Dashboard) about sidebar state change
-    // For simplicity, we'll assume Dashboard listens to this state change elsewhere
     window.dispatchEvent(new CustomEvent("toggleSidebar", { detail: { isCollapsed: !isCollapsed } }));
   };
 
@@ -94,7 +100,7 @@ const MobileHeader = () => {
   };
 
   return (
-    <div className="mobile-header">
+    <div className={`mobile-header ${!isCollapsed ? 'blurred' : ''}`}>
       <button className="toggle-btn" onClick={toggleSidebar}>
         <span className="hamburger-icon">☰</span>
       </button>
