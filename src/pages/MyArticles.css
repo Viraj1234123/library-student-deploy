@@ -332,6 +332,10 @@ article
 
 @media (max-width: 768px) {
 
+  .sidebar-collapsed .main-content {
+    width: 90vw;
+  }
+
   .main-content {
     width: 90vw;
     overflow-y: visible;
