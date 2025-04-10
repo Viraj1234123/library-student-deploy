@@ -530,11 +530,12 @@ const Dashboard = () => {
                   />
                 </div>
                 <div className="form-actions">
-                  <button type="button" className="skip-btn" onClick={handleSkipProfile}>
-                    Cancel
-                  </button>
+                  
                   <button type="submit" className="save-profile-btn">
                     Save Profile
+                  </button>
+                  <button type="button" className="skip-btn" onClick={handleSkipProfile}>
+                    Cancel
                   </button>
                 </div>
               </form>

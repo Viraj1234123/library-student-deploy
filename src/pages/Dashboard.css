@@ -469,7 +469,7 @@
 
 .skip-btn {
     background-color: transparent;
-    color: #6b7280;
+    color: var(--danger-color);
     border: 1px solid #d1d5db
 }
 
@@ -891,14 +891,15 @@
 }
 
 .skip-btn {
-    background-color: #f3f4f6;
-    color: #4b5563;
+    background-color: var(--danger-color);
+    color: #ffffff;
     border: 1px solid #e5e7eb;
 }
 
 .skip-btn:hover {
-    background-color: #e5e7eb;
-    color: #374151;
+    background-color: red;
+    color: #ffffff;
+    transform: translateY(-2px);
 }
 
 /* Error Message */
@@ -937,7 +938,8 @@
     
     .profile-completion-form {
         padding: 25px 20px;
-        max-height: 80vh;
+        max-height: 90vh;
+        margin-left: 0;
     }
     
     .form-actions {
@@ -1150,8 +1152,8 @@
 
 
     .profile-completion-form {
-        width: 95vw; /* Nearly full viewport width with slight padding */
-        max-width: 95vw; /* Prevent exceeding viewport */
+        width: 80vw; /* Nearly full viewport width with slight padding */
+        max-width: 80vw; /* Prevent exceeding viewport */
         padding: 25px 20px;
     }
 

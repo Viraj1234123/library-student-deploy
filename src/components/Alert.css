@@ -89,23 +89,26 @@
     background: linear-gradient(135deg, #eaa0a0 0%, #eb4646 100%); /* Gradient for depth */
     color: #991b1b; /* Slightly darker red */
     border-left: 5px solid #ef4444; /* Thicker border */
-    z-index: 10000;
+    z-index: 100000;
 }
 
 .alert-warning {
     background: linear-gradient(135deg, #eee0af 0%, #fba300 100%);
     color: #854d0e;
     border-left: 5px solid #f59e0b;
+    z-index: 100000;
 }
 
 .alert-success {
     background: linear-gradient(135deg, #b8f4d5 0%, #32e771 100%);
     color: #065f46;
     border-left: 5px solid #10b981;
+    z-index: 100000;
 }
 
 .alert-info {
     background: linear-gradient(135deg, #e0f2fe 0%, #88d1f9 100%);
     color: #075985;
     border-left: 5px solid #38bdf8;
+    z-index: 100000;
 }
