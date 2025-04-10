@@ -334,6 +334,7 @@ article
 
   .main-content {
     width: 90vw;
+    overflow-y: visible;
   }
 
 }
