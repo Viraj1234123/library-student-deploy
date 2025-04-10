@@ -552,7 +552,15 @@
   }
   
   /* Responsive Adjustments */
-  /* @media (max-width: 768px) {
+
+  @media (max-width: 800px) {
+    .complaint-tabs{
+      display: grid;
+      grid-template-columns: 2fr 2fr;
+    }
+  }
+
+  @media (max-width: 480px) {
     .main-content {
       padding: 16px;
       margin-left: 0;
@@ -588,7 +596,7 @@
     .form-type-buttons {
       flex-direction: column;
     }
-  } */
+  }
 
 .complaint-form-card.narrow-form {
   max-width: 600px;  /* Reduced from 800px */

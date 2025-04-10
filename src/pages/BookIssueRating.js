@@ -52,7 +52,7 @@ const BookIssueRating = () => {
   useEffect(() => {
     if (search.length > 0) {
       const results = books.filter((book) =>
-        book[filterType].toLowerCase().includes(search.toLowerCase())
+        book[filterType].includes(search.toLowerCase())
       );
       setFilteredBooks(results);
       setShowResults(true);
@@ -221,7 +221,7 @@ const BookIssueRating = () => {
                   <option value="title">Title</option>
                   <option value="author">Author</option>
                   <option value="subject">Subject</option>
-                  <option value="cosubject">Co-subject</option>
+                  <option value="coSubject">Co-subject</option>
                 </select>
 
                 <input

@@ -529,16 +529,22 @@
   .search-section {
     max-width: 100%;
   }
-}
+}*/
 
 @media (max-width: 768px) {
   .search-container {
     flex-direction: column;
+    width: 100%;
+    max-width: 300px;
   }
   
   .search-input,
   .filter-dropdown {
     width: 100%;
+  }
+
+  .filter-dropdown{
+    max-width: 150px;
   }
   
   .book-actions {
@@ -548,4 +554,4 @@
   .action-btn {
     width: 100%;
   }
-} */
+} 

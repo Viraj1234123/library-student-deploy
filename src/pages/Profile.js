@@ -259,7 +259,7 @@ const Profile = () => {
         ) : (
           <div className="no-bookings">
             <p>No {bookingView} bookings found</p>
-            <button className="action-btn" onClick={() => navigate("/seat-booking")}>
+            <button className="action-btn book-a-seat-btn" onClick={() => navigate("/seat-booking")}>
               Book a Seat
             </button>
           </div>
@@ -369,7 +369,7 @@ const Profile = () => {
             <div className="no-bookings">
               <p>No books found</p>
               <button
-                className="action-btn"
+                className="action-btn browse-books-btn"
                 onClick={() => navigate("/book-issue-rating")}
               >
                 Browse Books

@@ -221,6 +221,7 @@
     align-items: center;
     width: 100%;
     margin-bottom: 20px;
+    gap: 10px;
     padding-bottom: 15px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }
@@ -530,127 +531,6 @@
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
 }
 
-/* Responsive adjustments */
-/* @media (max-width: 1024px) {
-    .sidebar:not(.collapsed) {
-        width: 240px;
-        min-width: 240px;
-        padding: 20px;
-    }
-    
-    .app-container {
-        position: relative;
-    }
-}
-
-@media (max-width: 768px) {
-    .app-container {
-        flex-direction: column;
-    }
-    
-    .sidebar {
-        width: 100%;
-        min-width: 100%;
-        height: auto;
-        min-height: auto;
-        padding: 15px;
-        position: relative;
-        z-index: 100;
-    }
-    
-    .sidebar.collapsed {
-        height: 70px;
-        width: 100%;
-        min-width: 100%;
-        overflow: hidden;
-    }
-    
-    .sidebar-header {
-        margin-bottom: 15px;
-    }
-    
-    .sidebar.collapsed .sidebar-menu {
-        display: none;
-    }
-    
-    .seat-booking-header {
-        flex-direction: column;
-        gap: 15px;
-    }
-    
-    .seat-menu {
-        flex-wrap: wrap;
-        justify-content: center;
-    }
-    
-    .selected-room, .selected-time-info, .selected-seat-info {
-        flex-direction: column;
-        gap: 10px;
-        align-items: flex-start;
-    }
-    
-    .time-slots-grid {
-        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    }
-    
-    .theater-seat {
-        width: 35px;
-        height: 35px;
-        font-size: 13px;
-    }
-    
-    .row-label {
-        width: 20px;
-        height: 20px;
-        font-size: 12px;
-    }
-    
-    .day-selector {
-        flex-direction: column;
-        align-items: center;
-        gap: 10px;
-    }
-    
-    .day-btn {
-        width: 80%;
-        max-width: 200px;
-    }
-}
-
-@media (max-width: 480px) {
-    .theater-seat {
-        width: 30px;
-        height: 30px;
-        font-size: 12px;
-    }
-    
-    .seat-booking-container {
-        padding: 10px;
-    }
-    
-    .booking-container {
-        width: 95%;
-        padding: 15px;
-    }
-    
-    .time-slots-grid {
-        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-    }
-    
-    .booking-actions {
-        flex-direction: column;
-        gap: 10px;
-    }
-    
-    .sidebar-title {
-        font-size: 20px;
-    }
-    
-    .toggle-btn {
-        width: 32px;
-        height: 32px;
-    }
-} */
 
 .app-container {
     display: flex;
