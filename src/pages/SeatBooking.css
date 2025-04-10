@@ -82,7 +82,7 @@
 .loading-spinner {
     border: 5px solid rgba(255, 255, 255, 0.3);
     border-radius: 50%;
-    border-top: 5px solid #b3d219;
+    border-top: 5px solid rgb(25, 74, 210);
     width: 40px;
     height: 40px;
     animation: spin 1s linear infinite;
@@ -286,6 +286,7 @@
     flex-direction: column;
     align-items: center;
     gap: 30px;
+    overflow: scroll;
 }
 
 .entrance {
@@ -853,6 +854,10 @@
   font-size: large;
 }
 
+.theater-layout{
+    overflow: hidden;
+}
+
 @media (max-width: 768px) {
 
     .header-right{
@@ -862,5 +867,99 @@
     .header-buttons{
         display: none;
     }
+
+    .theater-layout{
+        min-width: 700px;
+        width: 700px;
+        overflow-x : scroll;
+        object-fit: contain;
+    }
     
 }
+  
+  /* Mobile responsiveness */
+  @media (max-width: 768px) {
+    .theater-layout {
+      width: 700px; /* Keep the wide layout for scrolling */
+      height: 500px; /* Reduce height for mobile */
+      overflow-x: auto; /* Ensure horizontal scrolling */
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+    }
+  
+    .section-container {
+      height: 80%; /* Adjust height for mobile */
+    }
+  
+    .absolute-seat {
+      width: 20px; /* Slightly smaller seats on mobile */
+      height: 20px;
+      font-size: 10px; /* Smaller text for mobile */
+    }
+  
+    .seat-booking-container {
+      padding: 10px; /* Reduce padding on mobile */
+    }
+  
+    .booking-container {
+      width: 100%; /* Full width on mobile */
+      padding: 10px;
+    }
+  
+    .selected-room,
+    .selected-time-info,
+    .selected-seat-info,
+    .selected-room-time-info {
+      flex-direction: column; /* Stack items vertically on mobile */
+      align-items: flex-start;
+      gap: 10px;
+    }
+  
+    .back-btn {
+      width: 100%; /* Full-width button on mobile */
+      text-align: center;
+    }
+  
+    .seat-legend {
+      flex-direction: column; /* Stack legend items vertically */
+      align-items: flex-start;
+      gap: 10px;
+    }
+  }
+
+/* Fix your media query for mobile */
+@media (max-width: 768px) {
+    .header-right {
+        display: none;
+    }
+
+    .header-buttons {
+        display: none;
+    }
+    
+    /* Fix the theater layout scrolling */
+    .theater-layout {
+        /* Remove fixed width */
+        min-width: 700px; /* Let content determine width */
+        width: 700px;
+        overflow-x: scroll;
+    }
+    
+    .theater-container {
+        overflow-x: scroll; /* Enable horizontal scrolling */
+        width: 100%; /* Take full width of parent */
+        padding: 0 10px; /* Add some padding */
+    }
+    
+    /* Ensure rows don't break */
+    .rows-container {
+        min-width: min-content;
+    }
+    
+    /* Ensure the booking container doesn't overflow */
+    .booking-container {
+        width: 95%;
+        padding: 15px 10px;
+    }
+}
+

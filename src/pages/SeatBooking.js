@@ -567,7 +567,6 @@ const SeatBooking = () => {
           height: "700px",
           border: "1px solid #ccc",
           backgroundColor: "#f0f0f0",
-          overflow: "hidden",
         }}
       >
         <div
