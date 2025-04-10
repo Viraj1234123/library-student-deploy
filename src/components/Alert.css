@@ -113,9 +113,9 @@
     z-index: 100000;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 500px) {
     .alert {
-        width: 90%; /* Responsive width for smaller screens */
+        width: 80%; /* Responsive width for smaller screens */
         right: 5%; /* Centered on smaller screens */
         top: 10px; /* Adjusted top position */
     }
