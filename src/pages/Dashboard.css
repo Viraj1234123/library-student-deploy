@@ -1061,7 +1061,7 @@
     }
 
     .sidebar:not(.collapsed) {
-        width: 60%; /* Good amount of width when expanded */
+        width: 70%; /* Good amount of width when expanded */
     }
 
     .sidebar:not(.collapsed) .toggle-btn {

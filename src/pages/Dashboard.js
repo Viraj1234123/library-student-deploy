@@ -120,6 +120,13 @@ const Dashboard = () => {
     };
   }, []);
 
+  useEffect(() => {
+    // Broadcast current sidebar state to all components
+    window.dispatchEvent(new CustomEvent("toggleSidebar", { 
+      detail: { isCollapsed: isCollapsed } 
+    }));
+  }, [isCollapsed]);
+
   const settings = {
     dots: true,
     infinite: true,
