@@ -229,3 +229,10 @@
   .error-message button:hover {
     background-color: #0d8bf2;
   }
+
+  @media (max-width: 768px) {
+    .page-image{
+      max-width: 100%;
+      height: 100%;
+    }
+  }

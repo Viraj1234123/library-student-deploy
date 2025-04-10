@@ -107,6 +107,8 @@
     }
 
     .toggle-btn {
+      width: 34px;
+      height: 34px;
       background: rgb(35,23,23);
     }
 
