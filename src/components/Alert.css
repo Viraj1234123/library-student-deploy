@@ -112,3 +112,11 @@
     border-left: 5px solid #38bdf8;
     z-index: 100000;
 }
+
+@media (max-width: 768px) {
+    .alert {
+        width: 90%; /* Responsive width for smaller screens */
+        right: 5%; /* Centered on smaller screens */
+        top: 10px; /* Adjusted top position */
+    }
+}
