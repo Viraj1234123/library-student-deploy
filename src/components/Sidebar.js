@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Sidebar.css";
 import API from "../api";
 
 const Sidebar = ({ isCollapsed, toggleSidebar, activeItem, onLogout }) => {
   const navigate = useNavigate();
+  const sidebarRef = useRef(null);
   
   const handleLogout = async () => {
     try {
@@ -15,9 +16,35 @@ const Sidebar = ({ isCollapsed, toggleSidebar, activeItem, onLogout }) => {
       navigate("/");
     }
   };
-  
+
+  // Function to handle clicks outside the sidebar on mobile
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      // Only run this for mobile screens (you can adjust the width as needed)
+      if (window.innerWidth <= 768) {
+        // Check if sidebar is open and the click is outside
+        if (!isCollapsed && 
+            sidebarRef.current && 
+            !sidebarRef.current.contains(event.target)) {
+          toggleSidebar();
+        }
+      }
+    };
+
+    // Add event listener when component mounts
+    document.addEventListener("mousedown", handleClickOutside);
+    
+    // Remove event listener when component unmounts
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isCollapsed, toggleSidebar]);
+ 
   return (
-    <div className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
+    <div 
+      ref={sidebarRef}
+      className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}
+    >
       <div className="sidebar-header">
         <button className="toggle-btn" onClick={toggleSidebar}>
           <span className="hamburger-icon">☰</span>
@@ -26,7 +53,7 @@ const Sidebar = ({ isCollapsed, toggleSidebar, activeItem, onLogout }) => {
           <h2 className="sidebar-title">Student Portal</h2>
         )}
       </div>
-      
+     
       <ul className="sidebar-menu">
         <li
           className={activeItem === "dashboard" ? "active" : ""}
@@ -78,7 +105,7 @@ const Sidebar = ({ isCollapsed, toggleSidebar, activeItem, onLogout }) => {
           {!isCollapsed && <span className="menu-text">Bookings</span>}
         </li>
       </ul>
-      
+     
       {/* Uncomment if you want to use the logout section
       <div className="sidebar-footer">
         <button

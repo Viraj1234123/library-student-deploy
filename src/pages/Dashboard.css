@@ -1025,7 +1025,7 @@
 
 .main-content.blurred {
     filter: blur(2px);
-    pointer-events: none;
+    pointer-events: auto;
 }
 
 @media (max-width: 768px) {
@@ -1035,6 +1035,7 @@
 
     .mobile-header {
         display: flex;
+        height: 4%;
     }
 
     .mobile-header-text{
@@ -1059,7 +1060,11 @@
     }
 
     .sidebar:not(.collapsed) {
-        width: 70%; /* Good amount of width when expanded */
+        width: 60%; /* Good amount of width when expanded */
+    }
+
+    .sidebar:not(.collapsed) .toggle-btn {
+        background: rgba(255, 255, 255, 0.1);
     }
 
     .main-content {

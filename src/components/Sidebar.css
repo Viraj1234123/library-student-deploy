@@ -10,6 +10,7 @@
     transition: all 0.3s ease;
     overflow: hidden;
     height: 100vh;
+    z-index: 10002;
   }
   
   .sidebar.collapsed {
@@ -35,7 +36,7 @@
   }
   
   .toggle-btn {
-    background: rgb(35, 23, 23);
+    background: rgba(255, 255, 255, 0.1);
     color: white;
     border: none;
     width: 36px;
@@ -50,7 +51,7 @@
   }
   
   .toggle-btn:hover {
-    background: rgb(35, 23, 23);
+    background: rgba(255, 255, 255, 0.1);
   }
   
   .hamburger-icon {
@@ -104,4 +105,13 @@
     .sidebar.collapsed {
         display: none ;
     }
+
+    .toggle-btn {
+      background: rgb(35,23,23);
+    }
+
+    .toggle-btn:hover {
+      background: rgb(35,23,23);
+    }
+
   }
