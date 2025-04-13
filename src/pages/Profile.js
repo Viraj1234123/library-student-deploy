@@ -400,11 +400,11 @@ const Profile = () => {
 
       <div className={`main-content ${!isCollapsed && window.innerWidth <= 768 ? "blurred" : ""}`}>
         <div className="dashboard-header">
-          <div className="heading_color">🗓️ My Bookings</div>
+          <div className="heading_color">🗓️ My Seat Bookings</div>
           <ProfileButton />
         </div>
         <div className="bookings-container">
-          <div className="bookings-tabs">
+          {/* <div className="bookings-tabs">
             <button
               className={`tab-btn ${activeTab === "issuedBooks" ? "active" : ""}`}
               onClick={() => setActiveTab("issuedBooks")}
@@ -417,9 +417,10 @@ const Profile = () => {
             >
               💺 Seat Bookings
             </button>
-          </div>
+          </div> */}
 
-          {activeTab === "issuedBooks" ? renderBooksSection() : renderSeatBookingsSection()}
+          {/* {activeTab === "issuedBooks" ? renderBooksSection() : renderSeatBookingsSection()} */}
+          {renderSeatBookingsSection()}
         </div>
       </div>
     </div>

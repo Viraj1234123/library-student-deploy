@@ -81,7 +81,7 @@ const Auth = () => {
     dismissAlert();
     try {
       const res = await API.post("/admins/login", { email: adminEmail, password: adminPassword });
-      if (res?.data) navigate("/admin");
+      if (res?.data) window.location.href = "/admin/";
     } catch (err) {
       console.error("Admin Login Error:", err);
       showAlert(err.response?.data?.message || "Login failed. Please check your credentials.");
@@ -99,7 +99,12 @@ const Auth = () => {
       );
       
       if (res.status === 200) {
-        navigate(res.data.data.role === "admin" ? "/admin" : "/dashboard");
+        if(res.data.data.role === "admin") {
+          window.location.href = "/admin/";
+        }
+        else{
+          navigate("/dashboard");
+        }
       }
     } catch (error) {
       console.error('Google Login Error:', error);

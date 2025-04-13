@@ -16,7 +16,7 @@ const AppRoutes = () => {
             <Routes>
                 <Route path="/" element={<Login />} />
                 <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/book-issue-rating" element={<BookIssueRating />} />  {/* ✅ Unified Page */}
+                {/* <Route path="/book-issue-rating" element={<BookIssueRating />} />  ✅ Unified Page */}
                 <Route path="/seat-booking" element={<SeatBooking />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/complaints" element={<Complaint />} />

@@ -73,19 +73,19 @@ const Sidebar = ({ isCollapsed, toggleSidebar, activeItem, onLogout }) => {
           <span className="menu-icon">💺</span>
           {!isCollapsed && <span className="menu-text">Seats</span>}
         </li>
-        <li
+        {/* <li
           className={activeItem === "books" ? "active" : ""}
           onClick={() => navigate("/book-issue-rating")}
         >
           <span className="menu-icon">📖</span>
           {!isCollapsed && <span className="menu-text">Books</span>}
-        </li>
+        </li> */}
         <li
           className={activeItem === "complaints" ? "active" : ""}
           onClick={() => navigate("/complaints")}
         >
           <span className="menu-icon">📩</span>
-          {!isCollapsed && <span className="menu-text">Complaints</span>}
+          {!isCollapsed && <span className="menu-text">Grievances</span>}
         </li>
         <li
           className={activeItem === "article-request" ? "active" : ""}

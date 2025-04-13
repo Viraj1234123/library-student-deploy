@@ -64,7 +64,7 @@ const Complaint = () => {
       setMyComplaints(res.data.data);
     } catch (err) {
       console.error("Error fetching my complaints:", err);
-      displayAlert("Failed to fetch your complaints. Please try again.", "error");
+      displayAlert("Failed to fetch your grievances. Please try again.", "error");
     }
   };
 
@@ -74,7 +74,7 @@ const Complaint = () => {
       setAllComplaints(res.data.data);
     } catch (err) {
       console.error("Error fetching all complaints:", err);
-      displayAlert("Failed to fetch complaints. Please try again.", "error");
+      displayAlert("Failed to fetch grievances. Please try again.", "error");
     }
   };
 
@@ -121,7 +121,7 @@ const Complaint = () => {
 
       if (res.status === 201) {
         displayAlert(
-          `Your ${formType === "complaint" ? "complaint" : "feedback"} has been submitted successfully!`,
+          `Your ${formType === "complaint" ? "grievance" : "feedback"} has been submitted successfully!`,
           "success"
         );
 
@@ -190,8 +190,8 @@ const Complaint = () => {
       return (
         <div className="empty-state">
           <span className="empty-icon">📭</span>
-          <p>{isMyComplaints ? "No personal submissions yet" : "No complaints found"}</p>
-          <p className="empty-subtitle">Submit your first complaint or feedback!</p>
+          <p>{isMyComplaints ? "No personal submissions yet" : "No grievances found"}</p>
+          <p className="empty-subtitle">Submit your first grievance or feedback!</p>
         </div>
       );
     }
@@ -205,7 +205,7 @@ const Complaint = () => {
               className={`complaint-card ${complaint.category === "Feedback" ? "feedback-card" : ""}`}
             >
               <div className="card-top">
-                <span className="complaint-category">{complaint.category || "Complaint"}</span>
+                <span className="complaint-category">{complaint.category === "Complaint" ? "Grievance" : "Feedback" || "Grievance"}</span>
                 {getStatusBadge(complaint.status)}
               </div>
               <h3 className="complaint-title">{complaint.title}</h3>
@@ -290,7 +290,7 @@ const Complaint = () => {
 
       <div className={`main-content ${!isCollapsed && window.innerWidth <= 768 ? "blurred" : ""}`}>
         <div className="dashboard-header">
-          <div className="heading_color">📩 Complaints & Feedback</div>
+          <div className="heading_color">📩 Grievances & Feedback</div>
           <ProfileButton />
         </div>
         <div className="complaint-container">
@@ -301,7 +301,7 @@ const Complaint = () => {
                   className={`tab-btn ${activeTab === "complaints" ? "active" : ""}`}
                   onClick={() => setActiveTab("complaints")}
                 >
-                  <span className="tab-icon">📩</span>My Complaints
+                  <span className="tab-icon">📩</span>My Grievances
                 </button>
                 <button
                   className={`tab-btn ${activeTab === "feedback" ? "active" : ""}`}
@@ -310,10 +310,10 @@ const Complaint = () => {
                   <span className="tab-icon">💬</span>My Feedback
                 </button>
                 <button className="tab-btn complaint-btn" onClick={() => setFormType("complaint")}>
-                  <span className="tab-icon">➕</span>File a Complaint
+                  <span className="tab-icon">➕</span>Submit Grievance
                 </button>
                 <button className="tab-btn feedback-btn" onClick={() => setFormType("feedback")}>
-                  <span className="tab-icon">➕</span>Share Feedback
+                  <span className="tab-icon">➕</span>Submit Feedback
                 </button>
               </div>
 
@@ -327,7 +327,7 @@ const Complaint = () => {
           {formType && (
             <div className="complaint-form-card form-container">
               <div className="card-header">
-                <h2>{formType === "complaint" ? "Submit a New Complaint" : "Share Feedback"}</h2>
+                <h2>{formType === "complaint" ? "Submit a New Grievance" : "Share Feedback"}</h2>
                 <button className="back-button" onClick={() => setFormType(null)}>
                   <span>←</span> Back
                 </button>
@@ -342,7 +342,7 @@ const Complaint = () => {
                     id="title"
                     type="text"
                     name="title"
-                    placeholder={formType === "complaint" ? "Brief title for your complaint" : "Brief title for your feedback"}
+                    placeholder={formType === "complaint" ? "Brief title for your grievance" : "Brief title for your feedback"}
                     value={newComplaint.title}
                     onChange={handleComplaintChange}
                     className={formErrors.title ? "error" : ""}
@@ -401,7 +401,7 @@ const Complaint = () => {
                 >
                   {isSubmitting
                     ? "Submitting..."
-                    : `Submit ${formType === "complaint" ? "Complaint" : "Feedback"}`}
+                    : `Submit ${formType === "complaint" ? "Grievance" : "Feedback"}`}
                 </button>
               </div>
             </div>
