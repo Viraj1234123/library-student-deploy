@@ -27,6 +27,7 @@ const Profile = () => {
     message: "",
     type: "error",
   });
+  const [pastFilterDate, setPastFilterDate] = useState(null);
 
   useEffect(() => {
     // Fetch issued books for the logged-in student
@@ -180,12 +181,39 @@ const Profile = () => {
             ${end.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })}`;
   };
 
+  const getRoomShortName = (roomName) => {
+    if (!roomName) return "";
+    
+    // Handle "Stack and Reading Area X" case
+    if (roomName.toLowerCase().startsWith("stack and reading area")) {
+      const areaNumber = roomName.match(/\d+$/)?.[0] || "";
+      return "SRA" + areaNumber;
+    }
+    
+    // Handle "Room X" case
+    if (roomName.toLowerCase().startsWith("room")) {
+      return "R" + roomName.split(" ")[1];
+    }
+    
+    // Default case: first letter of each word
+    const words = roomName.split(" ");
+    return words.map(word => word.charAt(0).toUpperCase()).join("");
+  };
+
   const renderSeatBookingsSection = () => {
     let displayBookings = [];
 
     switch (bookingView) {
       case "past":
         displayBookings = seatBookings.past;
+        // Apply date filter if set
+        if (pastFilterDate) {
+          displayBookings = displayBookings.filter(
+            booking => new Date(booking.startTime).getDate() === new Date(pastFilterDate).getDate() &&
+            new Date(booking.startTime).getMonth() === new Date(pastFilterDate).getMonth() &&
+            new Date(booking.startTime).getFullYear() === new Date(pastFilterDate).getFullYear()
+          );
+        }
         break;
       case "today":
         displayBookings = seatBookings.today;
@@ -220,12 +248,35 @@ const Profile = () => {
           </button>
         </div>
 
+        {/* Date filter for past bookings */}
+        {bookingView === "past" && (
+          <div className="date-filter">
+            <label htmlFor="past-date-filter">Show bookings for: </label>
+            <input
+              type="date"
+              id="past-date-filter"
+              value={pastFilterDate || ""}
+              onChange={(e) => setPastFilterDate(e.target.value)}
+              max={new Date().toISOString().split("T")[0]}
+              className="date-input"
+            />
+            {pastFilterDate && (
+              <button 
+                className="clear-filter-btn"
+                onClick={() => setPastFilterDate(null)}
+              >
+                Clear filter
+              </button>
+            )}
+          </div>
+        )}
+
         {displayBookings.length > 0 ? (
           <div className="bookings-grid">
             {displayBookings.map((booking) => (
               <div key={booking._id} className="booking-card compact">
                 <div className="booking-card-header">
-                  <h3>Seat {booking.seatId.seatNumber}</h3>
+                  <h3>{getRoomShortName(booking.seatId.room)} - Seat {booking.seatId.seatNumber}</h3>
                 </div>
                 <div className="booking-card-body">
                   <p>

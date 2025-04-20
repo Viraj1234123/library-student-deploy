@@ -247,7 +247,7 @@ const Dashboard = () => {
     const itemHeight = 120;
     const gap = 20;
     const spacing = itemHeight + gap;
-    const animationSpeed = 80;
+    const animationSpeed = 50;
     const intervalTime = 100;
 
     useEffect(() => {
