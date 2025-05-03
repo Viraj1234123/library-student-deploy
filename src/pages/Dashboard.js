@@ -7,7 +7,8 @@ import "slick-carousel/slick/slick-theme.css";
 import "./Dashboard.css";
 import Sidebar from "../components/Sidebar";
 import Alert from "../components/Alert";
-import MobileHeader from "../components/MobileHeader"; // Import without parameters
+import MobileHeader from "../components/MobileHeader";
+import ProfileButton from "../components/ProfileButton";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -347,53 +348,7 @@ const Dashboard = () => {
         <div className="dashboard-header">
           <div className="greeting">Hello, {userName}! 👋</div>
           <div className="profile-actions" ref={profileDropdownRef}>
-            <button className="profile-btn" onClick={toggleProfileDropdown}>
-              <span className="profile-initial">{userName.charAt(0)}</span>
-            </button>
-            {showProfileDropdown && (
-              <div className="profile-dropdown">
-                <div className="profile-header">
-                  <div className="profile-avatar">
-                    <span className="profile-initial-large">{userName.charAt(0)}</span>
-                  </div>
-                  <div className="profile-info">
-                    <h3>{userName}</h3>
-                    <p>{userProfile?.email || "No email available"}</p>
-                  </div>
-                </div>
-                <div className="profile-details">
-                  <div className="profile-detail-item">
-                    <span className="detail-label">Roll Number:</span>
-                    <span className="detail-value">{userProfile?.rollNo || "N/A"}</span>
-                  </div>
-                  <div className="profile-detail-item">
-                    <span className="detail-label">Department:</span>
-                    <span className="detail-value">
-                      {userProfile?.department === "Not set" ? "N/A" : userProfile?.department || "N/A"}
-                    </span>
-                  </div>
-                  <div className="profile-detail-item">
-                    <span className="detail-label">Degree:</span>
-                    <span className="detail-value">
-                      {userProfile?.degree === "Not set" ? "N/A" : userProfile?.degree || "N/A"}
-                    </span>
-                  </div>
-                  <div className="profile-detail-item">
-                    <span className="detail-label">Phone:</span>
-                    <span className="detail-value">
-                      {userProfile?.phoneNumber === userProfile?.email
-                        ? "N/A"
-                        : userProfile?.phoneNumber || "N/A"}
-                    </span>
-                  </div>
-                </div>
-                <div className="profile-actions-footer">
-                  <button className="logout-btn" onClick={() => navigate("/")}>
-                    Logout
-                  </button>
-                </div>
-              </div>
-            )}
+            <ProfileButton/>
           </div>
         </div>
 
