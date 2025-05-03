@@ -196,16 +196,7 @@ const Auth = () => {
                     setIsForgotPassword(false);
                   }}
                 >
-                  Student Sign In
-                </button>
-                <button
-                  className={activeTab === "admin" && !isForgotPassword ? "active" : ""}
-                  onClick={() => {
-                    setActiveTab("admin");
-                    setIsForgotPassword(false);
-                  }}
-                >
-                  Admin Sign In
+                  Sign In
                 </button>
               </div>
               
@@ -230,7 +221,7 @@ const Auth = () => {
                 </form>
               ) : activeTab === "student" ? (
                 <form onSubmit={handleStudentLogin} className="auth-form">
-                  <h2>Student Sign In</h2>
+                  <h2></h2>
                   <div className="form-group">
                     <label htmlFor="student-email">Email Address</label>
                     <input
