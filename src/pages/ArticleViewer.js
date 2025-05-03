@@ -39,7 +39,13 @@ const ArticleViewer = () => {
         } else if (err.response?.status === 400) {
           setAlert({
             show: true,
-            message: "This article is no longer available or has expired.",
+            message: "This article's access has expired.",
+            type: "warning"
+          });
+        }else if (err.response?.status === 404) {
+          setAlert({
+            show: true,
+            message: "Article not found.",
             type: "warning"
           });
         } else {
@@ -77,7 +83,7 @@ const ArticleViewer = () => {
         console.error("Error fetching page image:", err);
         setAlert({
           show: true,
-          message: "Failed to load the page image. Please try again later.",
+          message: "Failed to load the page. Please try again later.",
           type: "error"
         });
       } finally {

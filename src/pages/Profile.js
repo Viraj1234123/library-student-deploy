@@ -155,7 +155,7 @@ const Profile = () => {
         });
       })
       .catch((err) =>
-        showAlert(err.response?.data?.message || "Error cancelling booking", "error")
+        showAlert(err.response?.data?.message || "Failed to cancel booking. PLease try again later.", "error")
       );
   };
 

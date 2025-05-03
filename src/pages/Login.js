@@ -108,7 +108,10 @@ const Auth = () => {
       }
     } catch (error) {
       console.error('Google Login Error:', error);
-      showAlert("Google login failed. Please try again.");
+      if (error.response.data.message === "Please login with your IIT Ropar email id") {
+        showAlert(error.response.data.message);
+      }
+      else showAlert("Google login failed. Please try again.");
     }
   };
 
@@ -127,7 +130,10 @@ const Auth = () => {
       }
     } catch (err) {
       console.error("Forgot Password Error:", err);
-      showAlert(err.response?.data?.message || "Reset password request failed. Please try again.");
+      if(err?.status === 404) {
+        showAlert("Please check your email address.");
+      }
+      else showAlert(err.response?.data?.message || "Reset password request failed. Please try again.");
     }
   };
 

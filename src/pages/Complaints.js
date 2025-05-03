@@ -130,11 +130,11 @@ const Complaint = () => {
         setNewComplaint({ title: "", description: "", attachments: [] });
         setFormType(null);
       } else {
-        displayAlert(`Failed to submit ${formType}. Please try again.`, "error");
+        displayAlert(`Failed to submit ${formType === "complaint" ? "grievance" : "feedback"}. Please try again.`, "error");
       }
     } catch (err) {
       console.error("Error submitting:", err);
-      displayAlert(`Error submitting ${formType}. Please try again later.`, "error");
+      displayAlert(`Error submitting ${formType === "complaint" ? "grievance" : "feedback"}. Please try again later.`, "error");
     } finally {
       setIsSubmitting(false);
     }

@@ -99,7 +99,10 @@ const ResetPassword = () => {
         }, 2000);
 
       } catch (err) {
-        showAlert(err.response?.data?.message || "Password reset failed. Please try again.");
+        if (err.response?.data === "jwt expired") {
+          showAlert("Reset password link has expired");
+        }
+        else showAlert("Password reset failed. Please try again.");
         setLoading(false);
       }
     }
@@ -176,6 +179,10 @@ const ResetPassword = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
+                    minLength={8}
+                    maxLength={100}
+                    pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$"
+                    title="Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number."
                   />
                 </div>
 
@@ -188,6 +195,9 @@ const ResetPassword = () => {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
+                    validate={password === confirmPassword}
+                    pattern={password}
+                    title="Passwords must match."
                   />
                 </div>
 

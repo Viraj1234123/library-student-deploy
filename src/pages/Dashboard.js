@@ -247,7 +247,7 @@ const Dashboard = () => {
     const itemHeight = 120;
     const gap = 20;
     const spacing = itemHeight + gap;
-    const animationSpeed = 50;
+    const animationSpeed = 20;
     const intervalTime = 100;
 
     useEffect(() => {
@@ -526,6 +526,10 @@ const Dashboard = () => {
                     value={formData.password}
                     onChange={handleInputChange}
                     required
+                    minLength={8}
+                    maxLength={100}
+                    pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$"
+                    title="Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number."
                     placeholder="Enter password which you can use to login"
                   />
                 </div>
