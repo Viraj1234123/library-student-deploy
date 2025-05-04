@@ -119,7 +119,7 @@ const Auth = () => {
     e.preventDefault();
     dismissAlert();
     
-    const endpoint = activeTab === "student" ? "/students/reset-password-request" : "/admins/reset-password-request";
+    const endpoint = "/students/reset-password-request";
     
     try {
       const res = await API.post(endpoint, { email: forgotEmail });
