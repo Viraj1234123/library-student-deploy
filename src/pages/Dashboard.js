@@ -484,7 +484,7 @@ const Dashboard = () => {
                     required
                     minLength={8}
                     maxLength={100}
-                    pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$"
+                    pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$"
                     title="Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number."
                     placeholder="Enter password which you can use to login"
                   />
