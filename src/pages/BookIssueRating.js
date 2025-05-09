@@ -90,6 +90,18 @@ const BookIssueRating = () => {
     };
   }, []);
 
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const response = await API.get("/students/current-student");
+      } catch (error) {
+        console.error("Error fetching user profile", error);
+        navigate("/");
+      }
+    };
+    fetchUserProfile();
+  }, []);
+
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);
     // Dispatch event to sync with MobileHeader

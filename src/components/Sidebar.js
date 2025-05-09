@@ -54,7 +54,7 @@ const Sidebar = ({ isCollapsed, toggleSidebar, activeItem, onLogout }) => {
           <span className="hamburger-icon">☰</span>
         </button>
         {!isCollapsed && (
-          <h2 className="sidebar-title">Student Portal</h2>
+          <h2 className="sidebar-title">User Portal</h2>
         )}
       </div>
      

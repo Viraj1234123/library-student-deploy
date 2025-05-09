@@ -21,6 +21,18 @@ const ArticleViewer = () => {
   });
 
   useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const response = await API.get("/students/current-student");
+      } catch (error) {
+        console.error("Error fetching user profile", error);
+        navigate("/");
+      }
+    };
+    fetchUserProfile();
+  }, []);
+
+  useEffect(() => {
     const fetchArticleMetadata = async () => {
       try {
         setIsLoading(true);

@@ -58,6 +58,18 @@ const Complaint = () => {
     setShowAlert(false);
   };
 
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const response = await API.get("/students/current-student");
+      } catch (error) {
+        console.error("Error fetching user profile", error);
+        navigate("/");
+      }
+    };
+    fetchUserProfile();
+  }, []);
+
   const fetchMyComplaints = async () => {
     try {
       const res = await API.get("/students/get-my-complaints");

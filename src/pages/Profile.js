@@ -30,6 +30,18 @@ const Profile = () => {
   const [pastFilterDate, setPastFilterDate] = useState(null);
 
   useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const response = await API.get("/students/current-student");
+      } catch (error) {
+        console.error("Error fetching user profile", error);
+        navigate("/");
+      }
+    };
+    fetchUserProfile();
+  }, []);
+
+  useEffect(() => {
     // Fetch issued books for the logged-in student
     API.get("/students/get-issued-books")
       .then((res) => {

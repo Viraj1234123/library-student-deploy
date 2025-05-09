@@ -81,6 +81,7 @@ const Dashboard = () => {
         }
       } catch (error) {
         console.error("Error fetching user profile", error);
+        navigate("/");
         setAlert({
           show: true,
           message: "Failed to load user profile",

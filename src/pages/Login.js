@@ -63,6 +63,30 @@ const Auth = () => {
     if (id === "admin-password") setAdminPassword(value);
   };
 
+  useEffect(() => {
+
+    const fetchUserProfile = async () => {
+      try {
+        const response = await API.get("/students/current-student");
+        if (response.status === 200) {
+            navigate("/dashboard");
+        }
+      } catch (error) {
+        try{
+          const response = await API.get("/admins/current-admin");
+          if (response.status === 200) {
+            window.location.href = "/admin/";
+          }
+        }
+        catch (error) {
+        }
+      }
+    };
+
+    fetchUserProfile();
+
+  }, []);
+
   // Form submission handlers
   const handleStudentLogin = async (e) => {
     e.preventDefault();

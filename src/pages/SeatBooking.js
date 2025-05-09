@@ -38,6 +38,18 @@ const SeatBooking = () => {
 
   const maxBookingHours = 5; // Maximum booking hours allowed per day
 
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const response = await API.get("/students/current-student");
+      } catch (error) {
+        console.error("Error fetching user profile", error);
+        navigate("/");
+      }
+    };
+    fetchUserProfile();
+  }, []);
+
   // Listen for sidebar toggle event from MobileHeader
   useEffect(() => {
     const handleSidebarToggle = (event) => {

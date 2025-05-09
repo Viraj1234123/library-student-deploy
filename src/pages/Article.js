@@ -26,6 +26,18 @@ const ArticleRequest = () => {
   });
 
   useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const response = await API.get("/students/current-student");
+      } catch (error) {
+        console.error("Error fetching user profile", error);
+        navigate("/");
+      }
+    };
+    fetchUserProfile();
+  }, []);
+
+  useEffect(() => {
     // Listen for the toggleSidebar event from MobileHeader
     const handleSidebarToggle = (event) => {
       setIsCollapsed(event.detail.isCollapsed);
@@ -113,7 +125,7 @@ const ArticleRequest = () => {
             <h2>✅ Request Submitted Successfully!</h2>
             <p>
               Your article request has been submitted to the library staff. You will
-              receive a notification when the article is available for download.
+              receive an email notification when the article is available for viewing.
             </p>
             <div className="action-buttons">
               <button onClick={() => setSubmitted(false)}>Request Another Article</button>
@@ -126,9 +138,9 @@ const ArticleRequest = () => {
               <h3>How it works:</h3>
               <ol>
                 <li>Fill out the form with as much information as possible</li>
-                <li>Our librarians will locate the article from our subscriptions or partner libraries</li>
+                <li>The library staff will locate the article from our subscriptions or partner libraries</li>
                 <li>Once available, you can view the article for the given time limit</li>
-                <li>Article requests are typically fulfilled within 1-3 business days</li>
+                <li>Article requests are typically fulfilled within 1-3 working days</li>
               </ol>
               <p className="note">
                 <strong>Note:</strong> Please ensure you're requesting articles for
